@@ -5,8 +5,6 @@ import { FULL_DENTAL_ARCH_TEETH } from '../../data/dentalLessons';
 export const GumsModel: React.FC = () => {
   // Generate a continuous U-shaped parabolic mandibular alveolar ridge
   const gumsGeometry = useMemo(() => {
-    // Generate an anatomical curved band following the 16 tooth positions
-    // We create a ribbon along the dental curve, lofting from inner (lingual) to outer (buccal)
     const segments = 64;
     const radialSegments = 16;
     const geom = new THREE.BufferGeometry();
@@ -15,18 +13,14 @@ export const GumsModel: React.FC = () => {
     const uvs: number[] = [];
     const indices: number[] = [];
 
-    // Helper curve for arch centerline: U-shaped parabola
-    // Incisors at (0, 1.55), Canines at (+-0.9, 1.2), Molars at (+-2.0, -1.6)
     const getArchCenter = (t: number): { x: number; z: number; tangentX: number; tangentZ: number } => {
-      // t from -1 (right 3rd molar) to +1 (left 3rd molar)
-      const u = t * Math.PI * 0.46; // angle parameter
+      const u = t * Math.PI * 0.46;
       const sinU = Math.sin(u);
       const cosU = Math.cos(u);
 
       const x = sinU * 2.05;
       const z = cosU * 1.8 - 0.25 - (1 - cosU) * 1.5;
 
-      // Numerical tangent
       const dt = 0.001;
       const uNext = (t + dt) * Math.PI * 0.46;
       const xNext = Math.sin(uNext) * 2.05;
@@ -39,30 +33,23 @@ export const GumsModel: React.FC = () => {
       return { x, z, tangentX: dx / len, tangentZ: dz / len };
     };
 
-    // Build grid of vertices along curve
     for (let i = 0; i <= segments; i++) {
-      const t = -1 + (i / segments) * 2; // -1 to +1
+      const t = -1 + (i / segments) * 2;
       const { x: cx, z: cz, tangentX, tangentZ } = getArchCenter(t);
 
-      // Normal perpendicular to tangent (pointing outward / buccal)
       const nx = -tangentZ;
       const nz = tangentX;
 
-      // For each radial slice: from lingual sulcus -> ridge crest -> buccal collar -> alveolar base
       for (let j = 0; j <= radialSegments; j++) {
-        const s = j / radialSegments; // 0 (lingual) to 1 (buccal base)
+        const s = j / radialSegments;
+        const widthOffset = -0.45 + s * 1.1;
 
-        // Radial offset from arch center line
-        const widthOffset = -0.45 + s * 1.1; // -0.45 to +0.65
-
-        // Height profile: crest at s=0.35, dropping down into base
         let y = 0.08 - Math.pow(s - 0.35, 2) * 1.8;
         if (s > 0.6) {
-          y -= (s - 0.6) * 1.6; // downward alveolar drop
+          y -= (s - 0.6) * 1.6;
         }
 
-        // Add scalloped wave along gingival margin (around teeth collars)
-        const scallopWave = Math.sin(t * Math.PI * 8) * 0.06 * Math.sin(s * Math.PI);
+        const scallopWave = Math.sin(t * Math.PI * 8) * 0.05 * Math.sin(s * Math.PI);
         y += scallopWave;
 
         const vx = cx + nx * widthOffset;
@@ -73,7 +60,6 @@ export const GumsModel: React.FC = () => {
       }
     }
 
-    // Build quad indices
     for (let i = 0; i < segments; i++) {
       for (let j = 0; j < radialSegments; j++) {
         const a = i * (radialSegments + 1) + j;
@@ -96,27 +82,26 @@ export const GumsModel: React.FC = () => {
 
   return (
     <group name="mandibular-gingiva">
-      {/* Main Gingival Mesh with healthy vascularized pink tone */}
+      {/* Friendly Soft Pastel Peach Gingival Tissue (non-intimidating, cozy) */}
       <mesh geometry={gumsGeometry} receiveShadow castShadow>
         <meshStandardMaterial
-          color="#e57388"
-          roughness={0.55}
-          metalness={0.03}
-          bumpScale={0.02}
-        />
-      </mesh>
-
-      {/* Anatomical Alveolar Bone Base (Underneath Jaw Support) */}
-      <mesh position={[0, -0.65, 0.0]}>
-        <cylinderGeometry args={[2.1, 2.3, 0.6, 32, 1, false, 0, Math.PI * 2]} />
-        <meshStandardMaterial
-          color="#d95d75"
-          roughness={0.7}
+          color="#F9ABA2" // Soft Peach Pastel
+          roughness={0.48}
           metalness={0.02}
         />
       </mesh>
 
-      {/* Sulcular Shadow Accents at tooth emergence points */}
+      {/* Alveolar Bone Base */}
+      <mesh position={[0, -0.65, 0.0]}>
+        <cylinderGeometry args={[2.1, 2.3, 0.6, 32, 1, false, 0, Math.PI * 2]} />
+        <meshStandardMaterial
+          color="#F09286" // Warm terracotta pastel
+          roughness={0.55}
+          metalness={0.02}
+        />
+      </mesh>
+
+      {/* Subtle soft blush collar accents */}
       {FULL_DENTAL_ARCH_TEETH.map((tooth) => (
         <mesh
           key={`collar-${tooth.id}`}
@@ -125,9 +110,9 @@ export const GumsModel: React.FC = () => {
         >
           <ringGeometry args={[0.22, 0.35, 16]} />
           <meshBasicMaterial
-            color="#991b1b"
+            color="#E07267"
             transparent
-            opacity={0.18}
+            opacity={0.12}
             depthWrite={false}
           />
         </mesh>

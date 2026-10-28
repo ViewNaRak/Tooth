@@ -1,55 +1,67 @@
-# 🦷 Tooth — 3D Interactive Full Dental Arch Simulator
+# 🦷 Tooth — Friendly 3D Oral Care Simulator (Pastel & Clay Toy Edition)
 
-> An Awwwards-inspired, fullscreen interactive 3D dental simulator for learning proper brushing (Modified Bass 45°), flossing (C-Shape), and oral hygiene on a **Full Mandibular Dental Arch (16 teeth)**. Built with React 19, Three.js, React Three Fiber, and Tailwind CSS.
-
----
-
-## 🌟 Architecture & Features (สถาปัตยกรรมและฟีเจอร์)
-
-### 1. Minimalist UI & Fullscreen 3D (Awwwards Style)
-- **100vw / 100vh Fullscreen Canvas**: พื้นที่แสดงผล 3D เต็มจอแบบไร้ขอบ ให้ความรู้สึกกว้าง โล่ง และทันสมัย
-- **Floating Top Bar**: โลโก้ "Tooth", ปุ่มสลับมุมกล้องด่วน (ภาพรวม, ฟันหน้า, มุมบน, กรามซ้าย/ขวา), ปุ่มย้อมสีคราบพลัค (Plaque Disclosing Dye), และแถบ Cleanliness Index ขนาดกะทัดรัด
-- **Floating Bottom Dock**: ด็อกควบคุมลอยตัวตรงกลางล่าง สำหรับเลือกเครื่องมือ (แปรงสีฟัน, ไหมขัดฟัน, น้ำยาบ้วนปาก), สลับมุม 45° (Modified Bass), ปุ่มจำลองการขจัดคราบ และปุ่มรีเซ็ตคราบ
-- **Floating Guide Popover**: ปุ่มป๊อปโอเวอร์สรุปขั้นตอนสั้นๆ ทางการแพทย์ที่มุมขวาล่าง ซ่อนตัวหนังสือยาวๆ ไม่ให้บดบังทัศนียภาพ
-
-### 2. Full Mandibular Dental Arch Model (แผงฟันล่างรูปตัว U 16 ซี่)
-- **16 Anatomical Teeth**: เรียงตามแนวโค้งพาราโบลาธรรมชาติของขากรรไกรล่าง (FDI #48 ถึง #38)
-  - **Incisors (#41, #42, #31, #32)**: ทรงใบมีด ปลายบาง แบนกว้าง
-  - **Canines (#43, #33)**: ฟันเขี้ยว ยอดแหลมเด่นชัด รับแนวโค้งมุมปาก
-  - **Premolars (#44, #45, #34, #35)**: ฟันกรามน้อย 2 ยอด (Bicuspid)
-  - **Molars (#46, #47, #48, #36, #37, #38)**: ฟันกรามใหญ่ หน้าบดเคี้ยวกว้าง ร่องฟันหลายยอด (Multi-cusps)
-- **Enamel Physical Material**: ผิวเคลือบฟันสีขาวนวลสะท้อนแสงเงา (`roughness: 0.14`, `clearcoat: 0.75`, `ior: 1.62` ดัชนี Hydroxyapatite)
-- **Parabolic Gingival Base**: ฐานเหงือกสีชมพูขึ้นรูปโค้งรับแนวฟันทั้งแผง พร้อมรอยต่อขอบเหงือกและร่องเงาใต้คอฟัน
-- **Biofilm & Food Debris Distribution**: กระจายคราบพลัคตามคอฟัน ซอกฟัน และร่องบดเคี้ยวตลอดทั้งแผง รองรับการย้อมสีคราบพลัค (Disclosing Agent)
-- **360° Free Orbit Controls**: หมุนสำรวจแผงฟันได้อย่างอิสระทุกมุมมอง
+> An accessible, friendly, and non-intimidating 3D dental simulator designed to reduce dental anxiety through warm pastel aesthetics, clay/vinyl toy stylization, procedural Web Audio sound effects, and interactive mouse-guided brushing physics.
 
 ---
 
-## 🛠️ โครงสร้างโฟลเดอร์ (Folder Structure)
+## 🌟 Key Upgrades & Highlights (จุดเด่นและการปรับปรุงล่าสุด)
+
+### 1. Mood & Tone: Friendly Pastel & Earth Tone (ลด Dental Anxiety)
+- **Warm Cream Background (`#FDFBF7`)**: สบายตา อบอุ่น นุ่มนวล ไม่น่ากลัว
+- **Frosted Glass Cards (`rounded-3xl`)**: แผงควบคุมสไตล์ Frosted Glass มนโค้งพิเศษ สีขาวนวลโปร่งแสง 90% พร้อมเงาฟุ้งละมุน
+- **Earth Tone Deep Brown (`#2E2A27`)**: สีตัวอักษรเพื่อความคมชัดและสบายตาเป็นเลิศ
+
+### 2. Large & Comfortable Typography (ตัวหนังสือขนาดใหญ่ อ่านสบายตา)
+- **หัวข้อและขั้นตอนหลัก**: ขนาด `text-xl` ถึง `text-2xl` หนาพิเศษ ชัดเจน ไม่ต้องเพ่ง
+- **เนื้อหาคำแนะนำ**: ขนาด `text-base` ถึง `text-lg` พร้อม `leading-relaxed` เว้นระยะบรรทัดโปร่งสบาย
+
+### 3. Clay / Vinyl Toy 3D Aesthetic
+- **Stylized Soft Teeth**: ฟัน 16 ซี่รูปทรงโค้งมนเป็นมิตร ผิวสัมผัสแบบ Clay/Vinyl toy กึ่งเงา (`Roughness 0.35`, `Metalness 0.05`) สีงาช้างอุ่นธรรมชาติ (`#FAF8F0`)
+- **Pastel Peach Gums**: ฐานเหงือกสีชมพูพีชพาสเทลนุ่มนวล (`#F9ABA2`)
+- **Warm Soft Studio Lighting**: แสงนวลไร้เงามืดจัด สว่าง อบอุ่น และเป็นมิตร
+
+### 4. Smooth Brushing Physics & Sparkle Particles
+- **Interactive Mouse Tracking**: หัวแปรงเคลื่อนที่ตามเคอร์เซอร์เมาส์ด้วยความนุ่มนวลสูง (Lerp Interpolation)
+- **Micro-vibrations (Bass Sweep)**: สั่นวนอัตโนมัติเมื่อหัวแปรงอยู่ในแนวร่องเหงือกทำมุม 45°
+- **Sparkle / Foam Burst Effect**: ละอองประกายและฟองโฟมสีขาวนุ่มพวยพุ่งเมื่อคราบพลัคหรือเศษอาหารแตกสลาย
+
+### 5. Procedural Web Audio FX (ไม่ต้องพึ่งพาไฟล์เสียงภายนอก)
+- สังเคราะห์เสียงแบบเรียลไทม์ 100% ผ่าน Web Audio API:
+  * 🪥 **เสียงขัดฟัน (Soft Scrub/Brush Squeak)**: เสียงฟึดฟัดนุ่มนวลเป็นจังหวะขณะถูแปรง
+  * 🫧 **เสียงคราบหลุด (Bubble Pop)**: เสียงฟองสบู่แตก "ป๊อป!" สดใสน่ารัก
+  * ✨ **เสียงสำเร็จ (Sparkle Chime)**: เสียงกระดิ่งคอร์ดใสก้องกังวานเมื่อทำความสะอาดเสร็จสิ้น
+- **ปุ่ม Mute / Unmute**: ควบคุมเสียงเปิด/ปิดได้สะดวกที่มุมขวาบนของหน้าจอ
+
+---
+
+## 🛠️ โครงสร้างไฟล์ (File Structure)
 
 ```
 Tooth/
 ├── src/
 │   ├── components/
 │   │   ├── canvas/
-│   │   │   └── DentalScene.tsx       # Fullscreen 3D Canvas, Studio Lighting & Orbit Controls
+│   │   │   └── DentalScene.tsx       # Soft Studio Lighting, Canvas & Camera Controller
 │   │   ├── models/
-│   │   │   ├── TeethModel.tsx        # Procedural 16-Tooth Full Dental Arch (Incisor, Canine, Premolar, Molar)
-│   │   │   ├── GumsModel.tsx         # Parabolic U-Shaped Mandibular Gingiva
+│   │   │   ├── TeethModel.tsx        # 16-Tooth Full Dental Arch (Clay/Vinyl Toy Soft Mesh)
+│   │   │   ├── GumsModel.tsx         # Soft Peach Pastel Mandibular Gingiva
 │   │   │   ├── PlaqueModel.tsx       # Biofilm Clusters with Disclosing Dye Support
 │   │   │   ├── DebrisModel.tsx       # Interdental Food Particles
-│   │   │   └── ToolsModel.tsx        # Toothbrush (45°), C-Shape Floss, Rinse Swirl
+│   │   │   ├── ToolsModel.tsx        # Smooth Lerp Brushing Physics & Interactive Proximity
+│   │   │   └── ParticlesModel.tsx    # Sparkle & Foam Bubble Burst System
 │   │   └── ui/
-│   │       ├── TopBar.tsx            # Floating Top Bar (Brand, Camera Presets, Cleanliness Meter)
-│   │       ├── BottomDock.tsx        # Floating Center Dock (Tool Selector, 45° Toggle, Simulate & Reset)
-│   │       └── GuidePopover.tsx      # Floating Bottom-Right Medical Summary Drawer
+│   │       ├── TopBar.tsx            # Frosted Glass rounded-3xl Top Bar + Mute Toggle
+│   │       ├── BottomDock.tsx        # Frosted Glass rounded-3xl Tool Controller
+│   │       └── GuidePopover.tsx      # Large Typography Step-by-Step Popover Card
+│   ├── utils/
+│   │   └── soundEffects.ts           # Procedural Web Audio API Sound Synthesizer
 │   ├── data/
-│   │   └── dentalLessons.ts          # 16-Tooth Arch Metadata, Initial Biofilm Spots & Dental Lessons
+│   │   └── dentalLessons.ts          # Dental Arch Metadata & Standard Guidelines
 │   ├── types/
 │   │   └── dental.ts                 # Strict TypeScript Type Definitions
-│   ├── App.tsx                       # Fullscreen Coordinator
-│   ├── main.tsx                      # Mount entrypoint
-│   └── index.css                     # Tailwind & Glassmorphism styles
+│   ├── App.tsx                       # Coordinator
+│   ├── main.tsx                      # Entrypoint
+│   └── index.css                     # Pastel Theme & Frosted Glass Utility Styles
 ├── index.html
 ├── package.json
 ├── tailwind.config.js
@@ -58,12 +70,12 @@ Tooth/
 
 ---
 
-## 🚀 คำสั่งรันโปรเจกต์ (Run Project)
+## 🚀 วิธีการทดสอบและรัน (How to Run)
 
-```bash
-# รัน Development Server
+```powershell
+# 1. รันโหมด Development
 npm run dev
 
-# ทดสอบ Production Build
+# 2. ตรวจสอบ Production Build
 npm run build
 ```

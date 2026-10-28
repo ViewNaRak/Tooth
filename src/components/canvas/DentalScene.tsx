@@ -8,6 +8,7 @@ import { GumsModel } from '../models/GumsModel';
 import { PlaqueModel } from '../models/PlaqueModel';
 import { DebrisModel } from '../models/DebrisModel';
 import { ToolsModel } from '../models/ToolsModel';
+import { ParticlesModel, type BurstEvent } from '../models/ParticlesModel';
 import type {
   PlaqueSpot,
   DebrisSpot,
@@ -19,13 +20,14 @@ import type {
 interface DentalSceneProps {
   plaqueSpots: PlaqueSpot[];
   debrisSpots: DebrisSpot[];
+  bursts: BurstEvent[];
   disclosingAgentEnabled: boolean;
   activeTool: ToolType;
   brushAngle: number;
   isAnimating: boolean;
   currentStep?: LessonStep;
   cameraPreset: CameraPreset;
-  onCleanPlaque?: (id: string) => void;
+  onCleanPlaqueSpot: (id: string, position: [number, number, number]) => void;
 }
 
 const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
@@ -33,20 +35,20 @@ const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   useEffect(() => {
-    let targetPos = new THREE.Vector3(0, 3.6, 4.8);
+    let targetPos = new THREE.Vector3(0, 3.4, 4.7);
     let targetLook = new THREE.Vector3(0, 0.1, 0.1);
 
     switch (preset) {
       case 'overview':
-        targetPos = new THREE.Vector3(0, 3.5, 4.8);
+        targetPos = new THREE.Vector3(0, 3.4, 4.7);
         targetLook = new THREE.Vector3(0, 0.1, 0.2);
         break;
       case 'anterior':
-        targetPos = new THREE.Vector3(0, 0.7, 3.6);
+        targetPos = new THREE.Vector3(0, 0.65, 3.6);
         targetLook = new THREE.Vector3(0, 0.25, 1.2);
         break;
       case 'occlusal-top':
-        targetPos = new THREE.Vector3(0, 5.2, 0.05);
+        targetPos = new THREE.Vector3(0, 5.0, 0.05);
         targetLook = new THREE.Vector3(0, 0, 0);
         break;
       case 'left-molars':
@@ -73,7 +75,7 @@ const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
       dampingFactor={0.06}
       minDistance={1.8}
       maxDistance={9.5}
-      maxPolarAngle={Math.PI / 2 + 0.12} // Allow viewing all angles without dropping below the floor
+      maxPolarAngle={Math.PI / 2 + 0.1}
       target={[0, 0.1, 0.2]}
     />
   );
@@ -82,32 +84,33 @@ const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
 export const DentalScene: React.FC<DentalSceneProps> = ({
   plaqueSpots,
   debrisSpots,
+  bursts,
   disclosingAgentEnabled,
   activeTool,
   brushAngle,
   isAnimating,
   currentStep,
   cameraPreset,
-  onCleanPlaque,
+  onCleanPlaqueSpot,
 }) => {
   return (
     <div className="w-full h-full">
       <Canvas
         shadows
-        camera={{ position: [0, 3.5, 4.8], fov: 42 }}
+        camera={{ position: [0, 3.4, 4.7], fov: 42 }}
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.2,
+          toneMappingExposure: 1.1,
         }}
       >
-        {/* Soft Clinical Ambient Light */}
-        <ambientLight intensity={0.65} color="#f8fafc" />
+        {/* Soft Warm Ambient Light (Removes harsh dark shadows for Clay look) */}
+        <ambientLight intensity={1.1} color="#FFFBF0" />
 
-        {/* Studio Key Light (Front-Right overhead) */}
+        {/* Studio Key Light: Warm soft cream */}
         <directionalLight
-          position={[5, 7, 5]}
-          intensity={1.5}
+          position={[4, 7, 5]}
+          intensity={1.35}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -118,37 +121,33 @@ export const DentalScene: React.FC<DentalSceneProps> = ({
           shadow-camera-top={4}
           shadow-camera-bottom={-4}
           shadow-bias={-0.0001}
-          color="#ffffff"
+          color="#FFFDF7"
         />
 
-        {/* Left Cool Fill Light */}
+        {/* Soft Peach/Sand Fill Light */}
         <directionalLight
-          position={[-5, 4, 3]}
-          intensity={0.7}
-          color="#bae6fd"
+          position={[-4, 4, 3]}
+          intensity={0.75}
+          color="#FFE8DB"
         />
 
-        {/* Back Rim Light (Separates molars from background) */}
+        {/* Top-Back Warm Highlight */}
         <directionalLight
-          position={[0, 5, -5]}
-          intensity={0.85}
-          color="#fef08a"
+          position={[0, 5, -4]}
+          intensity={0.65}
+          color="#FFF2D6"
         />
 
-        {/* Underneath Soft Warm Light */}
-        <pointLight position={[0, -2, 1]} intensity={0.35} color="#fda4af" />
-
-        {/* Smooth 360 Orbit Controller */}
+        {/* Camera Controller */}
         <CameraController preset={cameraPreset} />
 
-        {/* Full Mandibular Dental Arch Assembly */}
+        {/* Full Dental Arch Assembly */}
         <group position={[0, -0.1, 0]}>
           <TeethModel />
           <GumsModel />
           <PlaqueModel
             plaqueSpots={plaqueSpots}
             disclosingAgentEnabled={disclosingAgentEnabled}
-            onCleanPlaque={onCleanPlaque}
           />
           <DebrisModel debrisSpots={debrisSpots} />
           <ToolsModel
@@ -156,16 +155,19 @@ export const DentalScene: React.FC<DentalSceneProps> = ({
             brushAngle={brushAngle}
             isAnimating={isAnimating}
             currentStep={currentStep}
+            plaqueSpots={plaqueSpots}
+            onCleanPlaqueSpot={onCleanPlaqueSpot}
           />
+          <ParticlesModel bursts={bursts} />
 
-          {/* Contact Shadows on Base Plane */}
+          {/* Gentle Soft Contact Shadows */}
           <ContactShadows
             position={[0, -0.96, 0]}
-            opacity={0.4}
+            opacity={0.22}
             scale={8}
-            blur={2.2}
+            blur={2.8}
             far={4}
-            color="#020617"
+            color="#785B49"
           />
         </group>
       </Canvas>
