@@ -8,7 +8,13 @@ import { GumsModel } from '../models/GumsModel';
 import { PlaqueModel } from '../models/PlaqueModel';
 import { DebrisModel } from '../models/DebrisModel';
 import { ToolsModel } from '../models/ToolsModel';
-import type { PlaqueSpot, DebrisSpot, ToolType, LessonStep } from '../../types/dental';
+import type {
+  PlaqueSpot,
+  DebrisSpot,
+  ToolType,
+  LessonStep,
+  CameraPreset,
+} from '../../types/dental';
 
 interface DentalSceneProps {
   plaqueSpots: PlaqueSpot[];
@@ -18,37 +24,38 @@ interface DentalSceneProps {
   brushAngle: number;
   isAnimating: boolean;
   currentStep?: LessonStep;
-  cameraPreset: 'front' | 'top' | 'close-interdental' | 'side';
+  cameraPreset: CameraPreset;
   onCleanPlaque?: (id: string) => void;
 }
 
-// Controller to smoothly animate OrbitControls and Camera position when preset changes
-const CameraController: React.FC<{ preset: 'front' | 'top' | 'close-interdental' | 'side' }> = ({
-  preset,
-}) => {
+const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
   const { camera } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
   useEffect(() => {
-    let targetPos = new THREE.Vector3(0, 0.4, 4.2);
-    let targetLook = new THREE.Vector3(0, 0, 0);
+    let targetPos = new THREE.Vector3(0, 3.6, 4.8);
+    let targetLook = new THREE.Vector3(0, 0.1, 0.1);
 
     switch (preset) {
-      case 'front':
-        targetPos = new THREE.Vector3(0, 0.3, 3.8);
-        targetLook = new THREE.Vector3(0, 0.1, 0);
+      case 'overview':
+        targetPos = new THREE.Vector3(0, 3.5, 4.8);
+        targetLook = new THREE.Vector3(0, 0.1, 0.2);
         break;
-      case 'top':
-        targetPos = new THREE.Vector3(0, 3.8, 0.8);
-        targetLook = new THREE.Vector3(0, 0.2, 0);
+      case 'anterior':
+        targetPos = new THREE.Vector3(0, 0.7, 3.6);
+        targetLook = new THREE.Vector3(0, 0.25, 1.2);
         break;
-      case 'close-interdental':
-        targetPos = new THREE.Vector3(0.0, 0.35, 2.2);
-        targetLook = new THREE.Vector3(0, 0.2, 0);
+      case 'occlusal-top':
+        targetPos = new THREE.Vector3(0, 5.2, 0.05);
+        targetLook = new THREE.Vector3(0, 0, 0);
         break;
-      case 'side':
-        targetPos = new THREE.Vector3(3.4, 0.5, 1.8);
-        targetLook = new THREE.Vector3(0, 0.1, 0);
+      case 'left-molars':
+        targetPos = new THREE.Vector3(3.8, 1.6, 0.4);
+        targetLook = new THREE.Vector3(1.7, 0.2, -0.4);
+        break;
+      case 'right-molars':
+        targetPos = new THREE.Vector3(-3.8, 1.6, 0.4);
+        targetLook = new THREE.Vector3(-1.7, 0.2, -0.4);
         break;
     }
 
@@ -65,9 +72,9 @@ const CameraController: React.FC<{ preset: 'front' | 'top' | 'close-interdental'
       enableDamping
       dampingFactor={0.06}
       minDistance={1.8}
-      maxDistance={7.5}
-      maxPolarAngle={Math.PI / 2 + 0.12} // Prevent camera from dropping under the gum base
-      target={[0, 0.1, 0]}
+      maxDistance={9.5}
+      maxPolarAngle={Math.PI / 2 + 0.12} // Allow viewing all angles without dropping below the floor
+      target={[0, 0.1, 0.2]}
     />
   );
 };
@@ -84,58 +91,58 @@ export const DentalScene: React.FC<DentalSceneProps> = ({
   onCleanPlaque,
 }) => {
   return (
-    <div className="relative w-full h-full">
+    <div className="w-full h-full">
       <Canvas
         shadows
-        camera={{ position: [0, 0.4, 4.0], fov: 45 }}
+        camera={{ position: [0, 3.5, 4.8], fov: 42 }}
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.15,
+          toneMappingExposure: 1.2,
         }}
       >
-        {/* Balanced Clinical Studio Lighting */}
-        <ambientLight intensity={0.7} color="#f8fafc" />
-        
-        {/* Main Key Light */}
+        {/* Soft Clinical Ambient Light */}
+        <ambientLight intensity={0.65} color="#f8fafc" />
+
+        {/* Studio Key Light (Front-Right overhead) */}
         <directionalLight
-          position={[4, 6, 5]}
-          intensity={1.4}
+          position={[5, 7, 5]}
+          intensity={1.5}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
           shadow-camera-near={0.5}
-          shadow-camera-far={15}
-          shadow-camera-left={-3}
-          shadow-camera-right={3}
-          shadow-camera-top={3}
-          shadow-camera-bottom={-3}
+          shadow-camera-far={18}
+          shadow-camera-left={-4}
+          shadow-camera-right={4}
+          shadow-camera-top={4}
+          shadow-camera-bottom={-4}
           shadow-bias={-0.0001}
           color="#ffffff"
         />
 
-        {/* Cool Fill Light */}
+        {/* Left Cool Fill Light */}
         <directionalLight
-          position={[-4, 3, 3]}
-          intensity={0.65}
+          position={[-5, 4, 3]}
+          intensity={0.7}
           color="#bae6fd"
         />
 
-        {/* Warm Enamel Rim Light (Gives teeth translucent glow) */}
+        {/* Back Rim Light (Separates molars from background) */}
         <directionalLight
-          position={[0, 4, -4]}
-          intensity={0.9}
+          position={[0, 5, -5]}
+          intensity={0.85}
           color="#fef08a"
         />
 
-        {/* Soft Underneath Ambient */}
-        <pointLight position={[0, -2, 2]} intensity={0.3} color="#fbcfe8" />
+        {/* Underneath Soft Warm Light */}
+        <pointLight position={[0, -2, 1]} intensity={0.35} color="#fda4af" />
 
-        {/* Camera and Interactive Controls */}
+        {/* Smooth 360 Orbit Controller */}
         <CameraController preset={cameraPreset} />
 
-        {/* Core Dental Anatomical Scene Assembly */}
-        <group position={[0, -0.15, 0]}>
+        {/* Full Mandibular Dental Arch Assembly */}
+        <group position={[0, -0.1, 0]}>
           <TeethModel />
           <GumsModel />
           <PlaqueModel
@@ -153,12 +160,12 @@ export const DentalScene: React.FC<DentalSceneProps> = ({
 
           {/* Contact Shadows on Base Plane */}
           <ContactShadows
-            position={[0, -1.32, 0]}
-            opacity={0.45}
-            scale={6}
-            blur={2}
-            far={3}
-            color="#0f172a"
+            position={[0, -0.96, 0]}
+            opacity={0.4}
+            scale={8}
+            blur={2.2}
+            far={4}
+            color="#020617"
           />
         </group>
       </Canvas>

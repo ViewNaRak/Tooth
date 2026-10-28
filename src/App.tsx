@@ -1,151 +1,112 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { Navigation } from 'lucide-react';
 import { DentalScene } from './components/canvas/DentalScene';
-import { Header } from './components/ui/Header';
-import { LessonGuidePanel } from './components/ui/LessonGuidePanel';
-import { ActionFeedbackPanel } from './components/ui/ActionFeedbackPanel';
-import { HudOverlay } from './components/ui/HudOverlay';
+import { TopBar } from './components/ui/TopBar';
+import { BottomDock } from './components/ui/BottomDock';
+import { GuidePopover } from './components/ui/GuidePopover';
 import {
-  DENTAL_LESSONS,
-  INITIAL_PLAQUE_SPOTS,
-  INITIAL_DEBRIS_SPOTS,
+  COMPACT_DENTAL_LESSONS,
+  INITIAL_ARCH_PLAQUE,
+  INITIAL_ARCH_DEBRIS,
 } from './data/dentalLessons';
 import type {
   LessonMode,
   ToolType,
   PlaqueSpot,
   DebrisSpot,
+  CameraPreset,
 } from './types/dental';
 
 export const App: React.FC = () => {
-  // Current Lesson & Step State
+  // Current Lesson & Active Tool
   const [currentLessonId, setCurrentLessonId] = useState<LessonMode>('brushing');
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-
-  // Tools & Simulation State
   const [activeTool, setActiveTool] = useState<ToolType>('brush');
   const [brushAngle, setBrushAngle] = useState<number>(45);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [disclosingAgentEnabled, setDisclosingAgentEnabled] = useState<boolean>(false);
 
-  // 3D Camera Preset State
-  const [cameraPreset, setCameraPreset] = useState<'front' | 'top' | 'close-interdental' | 'side'>('front');
+  // 3D Camera Preset
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset>('overview');
 
-  // Biofilm & Debris State
-  const [plaqueSpots, setPlaqueSpots] = useState<PlaqueSpot[]>(INITIAL_PLAQUE_SPOTS);
-  const [debrisSpots, setDebrisSpots] = useState<DebrisSpot[]>(INITIAL_DEBRIS_SPOTS);
+  // Biofilm & Debris State across the Full Dental Arch
+  const [plaqueSpots, setPlaqueSpots] = useState<PlaqueSpot[]>(INITIAL_ARCH_PLAQUE);
+  const [debrisSpots, setDebrisSpots] = useState<DebrisSpot[]>(INITIAL_ARCH_DEBRIS);
 
-  const currentLesson = DENTAL_LESSONS[currentLessonId];
-  const currentStep = currentLesson.steps[currentStepIndex];
+  const currentLesson = COMPACT_DENTAL_LESSONS[currentLessonId];
 
-  // Calculate Cleanliness Metrics
+  // Calculate Cleanliness Score
   const totalPlaqueCount = plaqueSpots.length;
   const plaqueCleanedCount = plaqueSpots.filter((s) => s.cleaned).length;
-
   const totalDebrisCount = debrisSpots.length;
   const debrisCleanedCount = debrisSpots.filter((s) => s.cleaned).length;
 
   const cleanlinessScore = useMemo(() => {
-    const totalItems = totalPlaqueCount + totalDebrisCount;
-    if (totalItems === 0) return 100;
-    const cleanedItems = plaqueCleanedCount + debrisCleanedCount;
-    return Math.round((cleanedItems / totalItems) * 100);
+    const total = totalPlaqueCount + totalDebrisCount;
+    if (total === 0) return 100;
+    const cleaned = plaqueCleanedCount + debrisCleanedCount;
+    return Math.round((cleaned / total) * 100);
   }, [totalPlaqueCount, plaqueCleanedCount, totalDebrisCount, debrisCleanedCount]);
 
-  // Handle Lesson Switching
-  const handleSelectLesson = useCallback((lesson: LessonMode) => {
-    setCurrentLessonId(lesson);
-    setCurrentStepIndex(0);
+  // Handle Tool Selection
+  const handleSelectTool = useCallback((tool: ToolType) => {
+    setActiveTool(tool);
+    if (tool === 'brush') {
+      setCurrentLessonId('brushing');
+      setCameraPreset('anterior');
+    } else if (tool === 'floss') {
+      setCurrentLessonId('flossing');
+      setCameraPreset('anterior');
+    } else if (tool === 'rinse') {
+      setCurrentLessonId('rinsing');
+      setCameraPreset('overview');
+    }
+  }, []);
 
-    // Switch tool & camera according to standard clinical focus
-    if (lesson === 'brushing') {
+  // Handle Lesson Selection from Guide Popover
+  const handleSelectLesson = useCallback((mode: LessonMode) => {
+    setCurrentLessonId(mode);
+    if (mode === 'brushing') {
       setActiveTool('brush');
-      setCameraPreset('front');
-    } else if (lesson === 'flossing') {
+      setCameraPreset('anterior');
+    } else if (mode === 'flossing') {
       setActiveTool('floss');
-      setCameraPreset('close-interdental');
-    } else if (lesson === 'rinsing') {
+      setCameraPreset('anterior');
+    } else if (mode === 'rinsing') {
       setActiveTool('rinse');
-      setCameraPreset('front');
+      setCameraPreset('overview');
     }
   }, []);
 
-  // Handle Step Navigation
-  const handleSelectStep = useCallback((stepIdx: number) => {
-    setCurrentStepIndex(stepIdx);
-    const targetStep = currentLesson.steps[stepIdx];
-    if (targetStep) {
-      if (targetStep.recommendedSurface === 'occlusal') {
-        setCameraPreset('top');
-      } else if (targetStep.recommendedSurface === 'interdental') {
-        setCameraPreset('close-interdental');
-      } else {
-        setCameraPreset('front');
-      }
-      setActiveTool(targetStep.recommendedTool);
-    }
-  }, [currentLesson]);
-
-  const handleNextStep = useCallback(() => {
-    if (currentStepIndex < currentLesson.steps.length - 1) {
-      handleSelectStep(currentStepIndex + 1);
-    }
-  }, [currentStepIndex, currentLesson, handleSelectStep]);
-
-  const handlePrevStep = useCallback(() => {
-    if (currentStepIndex > 0) {
-      handleSelectStep(currentStepIndex - 1);
-    }
-  }, [currentStepIndex, handleSelectStep]);
-
-  // Clean a specific plaque spot directly
-  const handleCleanPlaque = useCallback((id: string) => {
-    setPlaqueSpots((prev) =>
-      prev.map((spot) => (spot.id === id ? { ...spot, cleaned: true } : spot))
-    );
+  // Toggle Brush Angle (45° vs 90°)
+  const handleToggleBrushAngle = useCallback(() => {
+    setBrushAngle((prev) => (prev === 45 ? 90 : 45));
   }, []);
 
-  // Reset Plaque and Food Debris
+  // Reset Plaque & Debris
   const handleResetPlaque = useCallback(() => {
-    setPlaqueSpots(INITIAL_PLAQUE_SPOTS);
-    setDebrisSpots(INITIAL_DEBRIS_SPOTS);
+    setPlaqueSpots(INITIAL_ARCH_PLAQUE);
+    setDebrisSpots(INITIAL_ARCH_DEBRIS);
   }, []);
 
-  // Global Simulation Reset
-  const handleResetSimulation = useCallback(() => {
-    handleResetPlaque();
-    setCurrentStepIndex(0);
-    setBrushAngle(45);
-    setDisclosingAgentEnabled(false);
-    setCameraPreset('front');
-  }, [handleResetPlaque]);
-
-  // Run Simulation Action with Clinical Cleaning Effect
+  // Start Simulation & Clean Arch
   const handleStartSimulation = useCallback(() => {
     if (isSimulating) return;
     setIsSimulating(true);
 
-    // Progressive cleaning during simulation
     const timer = setTimeout(() => {
       if (activeTool === 'brush') {
-        if (currentStep?.recommendedSurface === 'occlusal') {
-          // Clean occlusal grooves
-          setPlaqueSpots((prev) =>
-            prev.map((s) => (s.surface === 'occlusal' ? { ...s, cleaned: true } : s))
-          );
-        } else {
-          // Clean buccal / sulcular margin
-          setPlaqueSpots((prev) =>
-            prev.map((s) => (s.surface === 'buccal' ? { ...s, cleaned: true } : s))
-          );
-        }
+        // Modified Bass cleans buccal cervical gumline and occlusal grooves
+        setPlaqueSpots((prev) =>
+          prev.map((s) => (s.surface === 'buccal' || s.surface === 'occlusal' ? { ...s, cleaned: true } : s))
+        );
       } else if (activeTool === 'floss') {
-        // Clean interdental plaque and food debris between teeth
+        // C-Shape Floss cleans interdental plaque and removes debris
         setPlaqueSpots((prev) =>
           prev.map((s) => (s.surface === 'interdental' ? { ...s, cleaned: true } : s))
         );
         setDebrisSpots((prev) => prev.map((d) => ({ ...d, cleaned: true })));
       } else if (activeTool === 'rinse') {
-        // Therapeutic rinse loosens any remaining plaque
+        // Therapeutic Rinse cleans remaining loosened biofilm
         setPlaqueSpots((prev) => prev.map((s) => ({ ...s, cleaned: true })));
       }
 
@@ -153,79 +114,61 @@ export const App: React.FC = () => {
     }, 2800);
 
     return () => clearTimeout(timer);
-  }, [isSimulating, activeTool, currentStep]);
-
-  // Active motion caption for HUD
-  const activeMotionCaption = useMemo(() => {
-    if (isSimulating) {
-      if (activeTool === 'brush') return 'กำลังสั่นวนและปัดตามเทคนิค Modified Bass (45°)';
-      if (activeTool === 'floss') return 'กำลังโอบตัวฟันรูปตัว C และรูดขึ้น-ลงในร่องเหงือก';
-      return 'กำลังกลั้วน้ำยาบ้วนปากทั่วถึงทุกซอกฟัน (Swishing Action)';
-    }
-    return `${currentLesson.thaiTitle} - Step ${currentStepIndex + 1}`;
-  }, [isSimulating, activeTool, currentLesson, currentStepIndex]);
+  }, [isSimulating, activeTool]);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#090d16] text-slate-100 antialiased font-sans">
-      {/* Top Header */}
-      <Header
-        currentLesson={currentLessonId}
-        onSelectLesson={handleSelectLesson}
+    <div className="relative w-screen h-screen overflow-hidden bg-[#070b12] text-slate-100 select-none font-sans">
+      {/* 1. Fullscreen 3D Canvas (100vw / 100vh) */}
+      <div className="absolute inset-0 w-full h-full">
+        <DentalScene
+          plaqueSpots={plaqueSpots}
+          debrisSpots={debrisSpots}
+          disclosingAgentEnabled={disclosingAgentEnabled}
+          activeTool={activeTool}
+          brushAngle={brushAngle}
+          isAnimating={isSimulating}
+          currentStep={currentLesson.steps[0]}
+          cameraPreset={cameraPreset}
+          onCleanPlaque={(id) =>
+            setPlaqueSpots((prev) =>
+              prev.map((s) => (s.id === id ? { ...s, cleaned: true } : s))
+            )
+          }
+        />
+      </div>
+
+      {/* 2. Floating Top Bar */}
+      <TopBar
+        cleanlinessScore={cleanlinessScore}
+        plaqueCleanedCount={plaqueCleanedCount}
+        totalPlaqueCount={totalPlaqueCount}
         disclosingAgentEnabled={disclosingAgentEnabled}
         onToggleDisclosingAgent={() => setDisclosingAgentEnabled((prev) => !prev)}
-        onResetSimulation={handleResetSimulation}
+        cameraPreset={cameraPreset}
+        onChangeCameraPreset={setCameraPreset}
       />
 
-      {/* Main Workspace Layout (Left: Guide | Center: 3D Canvas | Right: Feedback) */}
-      <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
-        {/* Left Educational Guide Panel */}
-        <LessonGuidePanel
-          lesson={currentLesson}
-          currentStepIndex={currentStepIndex}
-          onSelectStep={handleSelectStep}
-          onNextStep={handleNextStep}
-          onPrevStep={handlePrevStep}
-        />
+      {/* 3. Floating Bottom Dock */}
+      <BottomDock
+        activeTool={activeTool}
+        onSelectTool={handleSelectTool}
+        brushAngle={brushAngle}
+        onToggleBrushAngle={handleToggleBrushAngle}
+        isSimulating={isSimulating}
+        onStartSimulation={handleStartSimulation}
+        onResetPlaque={handleResetPlaque}
+      />
 
-        {/* Center 3D Viewport with HUD Overlay */}
-        <main className="flex-1 relative h-[45vh] lg:h-full bg-radial from-slate-900/60 to-slate-950">
-          <HudOverlay
-            onResetCamera={() => setCameraPreset('front')}
-            disclosingAgentEnabled={disclosingAgentEnabled}
-            activeMotionText={activeMotionCaption}
-          />
+      {/* 4. Floating Clinical Guide Popover */}
+      <GuidePopover
+        currentLessonId={currentLessonId}
+        onSelectLesson={handleSelectLesson}
+      />
 
-          <DentalScene
-            plaqueSpots={plaqueSpots}
-            debrisSpots={debrisSpots}
-            disclosingAgentEnabled={disclosingAgentEnabled}
-            activeTool={activeTool}
-            brushAngle={brushAngle}
-            isAnimating={isSimulating}
-            currentStep={currentStep}
-            cameraPreset={cameraPreset}
-            onCleanPlaque={handleCleanPlaque}
-          />
-        </main>
-
-        {/* Right Action & Feedback Panel */}
-        <ActionFeedbackPanel
-          lesson={currentLesson}
-          cleanlinessScore={cleanlinessScore}
-          plaqueCleanedCount={plaqueCleanedCount}
-          totalPlaqueCount={totalPlaqueCount}
-          debrisCleanedCount={debrisCleanedCount}
-          totalDebrisCount={totalDebrisCount}
-          activeTool={activeTool}
-          onSelectTool={setActiveTool}
-          brushAngle={brushAngle}
-          onChangeBrushAngle={setBrushAngle}
-          isSimulating={isSimulating}
-          onStartSimulation={handleStartSimulation}
-          onResetPlaque={handleResetPlaque}
-          cameraPreset={cameraPreset}
-          onChangeCameraPreset={setCameraPreset}
-        />
+      {/* 5. Minimalist 3D Navigation Tip (Bottom Left) */}
+      <div className="fixed bottom-6 left-6 z-20 pointer-events-none hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel text-[11px] text-slate-400 border border-white/5 backdrop-blur-md">
+        <Navigation className="w-3.5 h-3.5 text-cyan-400" />
+        <span>คลิกซ้าย + ลากเพื่อหมุน 360° | สกอลล์เพื่อซูม</span>
       </div>
     </div>
   );
