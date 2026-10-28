@@ -69,4 +69,4 @@ export interface DentalLesson {
   clinicalBenefits: string[];
 }
 
-export type CameraPreset = 'overview' | 'anterior' | 'left-molars' | 'right-molars' | 'occlusal-top';
+export type CameraPreset = 'overview' | 'anterior' | 'left-molars' | 'right-molars' | 'occlusal-top' | 'demo-focus';
