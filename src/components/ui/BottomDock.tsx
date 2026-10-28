@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, RotateCcw, Flame, CheckCircle2 } from 'lucide-react';
+import { Play, RotateCcw, Flame, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
 import type { ToolType } from '../../types/dental';
 
 interface BottomDockProps {
@@ -10,6 +10,8 @@ interface BottomDockProps {
   isSimulating: boolean;
   onStartSimulation: () => void;
   onResetPlaque: () => void;
+  isMuted: boolean;
+  onToggleMute: () => void;
 }
 
 export const BottomDock: React.FC<BottomDockProps> = ({
@@ -20,15 +22,17 @@ export const BottomDock: React.FC<BottomDockProps> = ({
   isSimulating,
   onStartSimulation,
   onResetPlaque,
+  isMuted,
+  onToggleMute,
 }) => {
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[94%] max-w-2xl">
       <div className="glass-panel-elevated rounded-3xl p-2.5 sm:p-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 pointer-events-auto border border-stone-200/80 shadow-2xl backdrop-blur-2xl">
-        {/* Tool Mode Buttons (Pastel aesthetic) */}
+        {/* Tool Mode Buttons & Sound Toggle placed together in the exact same row */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-stone-100/80 border border-stone-200/60">
           <button
             onClick={() => onSelectTool('brush')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+            className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 ${
               activeTool === 'brush'
                 ? 'bg-sky-400 text-slate-950 shadow-md shadow-sky-400/30'
                 : 'text-earth-muted hover:text-earth-dark hover:bg-stone-200/60'
@@ -40,7 +44,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
 
           <button
             onClick={() => onSelectTool('floss')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+            className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 ${
               activeTool === 'floss'
                 ? 'bg-rose-300 text-slate-950 shadow-md shadow-rose-300/30'
                 : 'text-earth-muted hover:text-earth-dark hover:bg-stone-200/60'
@@ -52,7 +56,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
 
           <button
             onClick={() => onSelectTool('rinse')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+            className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 ${
               activeTool === 'rinse'
                 ? 'bg-teal-300 text-slate-950 shadow-md shadow-teal-300/30'
                 : 'text-earth-muted hover:text-earth-dark hover:bg-stone-200/60'
@@ -61,9 +65,22 @@ export const BottomDock: React.FC<BottomDockProps> = ({
             <span className="text-base">💧</span>
             <span>บ้วนปาก</span>
           </button>
+
+          {/* Sound Mute / Unmute Toggle Button: Positioned harmoniously in the same row beside the tools */}
+          <button
+            onClick={onToggleMute}
+            title={isMuted ? 'เปิดเสียงเอฟเฟกต์ (Unmute)' : 'ปิดเสียง (Mute)'}
+            className={`p-2 rounded-xl transition-all border flex items-center justify-center ${
+              isMuted
+                ? 'bg-stone-200/60 text-stone-400 border-stone-300/80 hover:bg-stone-200'
+                : 'bg-emerald-100 text-emerald-800 border-emerald-300/80 shadow-sm hover:bg-emerald-200/80'
+            }`}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
         </div>
 
-        {/* 45° Angle Calibration Pill */}
+        {/* 45° Angle Calibration Pill (for Toothbrush) */}
         {activeTool === 'brush' && (
           <button
             onClick={onToggleBrushAngle}
@@ -88,7 +105,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
           </button>
         )}
 
-        {/* Action Buttons: Simulate Cleaning & Reset */}
+        {/* Actions: Simulate Cleaning & Reset */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
             onClick={onStartSimulation}
