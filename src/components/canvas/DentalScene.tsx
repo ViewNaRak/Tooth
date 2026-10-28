@@ -46,8 +46,9 @@ const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
         targetLook = new THREE.Vector3(0, 0.1, 0.2);
         break;
       case 'demo-focus':
-        targetPos = new THREE.Vector3(0, 0.45, 2.85); // Crisp close-up focusing directly on front teeth and sulcus
-        targetLook = new THREE.Vector3(0, 0.16, 1.45);
+        // 3/4 Side Profile Perspective: Clearly shows bristle tips contacting the cervical margin at 45°
+        targetPos = new THREE.Vector3(1.15, 0.52, 2.45);
+        targetLook = new THREE.Vector3(0.05, 0.28, 1.62);
         break;
       case 'anterior':
         targetPos = new THREE.Vector3(0, 0.65, 3.6);
