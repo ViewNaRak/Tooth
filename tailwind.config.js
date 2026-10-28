@@ -7,28 +7,37 @@ export default {
   theme: {
     extend: {
       colors: {
-        enamel: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
+        cream: {
+          50: '#FFFFFF',
+          100: '#FDFBF7',
+          200: '#F7F4EC',
+          300: '#EFECE2',
         },
-        dental: {
-          teal: '#0ea5e9',
-          cyan: '#06b6d4',
-          mint: '#10b981',
-          gum: '#f472b6',
-          gumDark: '#e11d48',
-          plaque: '#facc15',
-          tartar: '#ca8a04',
-          clean: '#38bdf8',
+        earth: {
+          dark: '#2E2A27',
+          charcoal: '#3F3934',
+          muted: '#716760',
+          sand: '#D4C9BC',
+          warm: '#9E8F83',
+        },
+        pastel: {
+          peach: '#F9ABA2',
+          peachDark: '#E07267',
+          mint: '#6EE7B7',
+          mintDark: '#10B981',
+          sky: '#7DD3FC',
+          skyDark: '#0284C7',
+          honey: '#FDE047',
+          amber: '#F59E0B',
+          pink: '#F472B6',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'Avenir', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
-      animation: {
-        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce-soft': 'bounce 2s infinite',
+      borderRadius: {
+        '3xl': '1.75rem',
+        '4xl': '2.25rem',
       }
     },
   },
