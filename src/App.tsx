@@ -4,6 +4,7 @@ import { DentalScene } from './components/canvas/DentalScene';
 import { TopBar } from './components/ui/TopBar';
 import { BottomDock } from './components/ui/BottomDock';
 import { GuidePopover } from './components/ui/GuidePopover';
+import { LessonCard, type DemoPhase } from './components/ui/LessonCard';
 import type { BurstEvent } from './components/models/ParticlesModel';
 import { soundEffects } from './utils/soundEffects';
 import {
@@ -22,9 +23,11 @@ import type {
 export const App: React.FC = () => {
   // Current Lesson & Active Tool
   const [currentLessonId, setCurrentLessonId] = useState<LessonMode>('brushing');
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [activeTool, setActiveTool] = useState<ToolType>('brush');
   const [brushAngle, setBrushAngle] = useState<number>(45);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [demoPhase, setDemoPhase] = useState<DemoPhase>(null);
   const [disclosingAgentEnabled, setDisclosingAgentEnabled] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
@@ -73,7 +76,7 @@ export const App: React.FC = () => {
 
       // Spawn sparkle/foam particle burst
       setBursts((prev) => [
-        ...prev.slice(-20), // keep recent bursts only
+        ...prev.slice(-20),
         {
           id: `${id}-${Date.now()}`,
           position,
@@ -88,6 +91,7 @@ export const App: React.FC = () => {
   const handleSelectTool = useCallback((tool: ToolType) => {
     setActiveTool(tool);
     soundEffects.playPopSound(1.1);
+    setCurrentStepIndex(0);
     if (tool === 'brush') {
       setCurrentLessonId('brushing');
       setCameraPreset('anterior');
@@ -100,9 +104,10 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Handle Lesson Selection from Guide Popover
+  // Handle Lesson Selection from Popover
   const handleSelectLesson = useCallback((mode: LessonMode) => {
     setCurrentLessonId(mode);
+    setCurrentStepIndex(0);
     soundEffects.playPopSound(1.1);
     if (mode === 'brushing') {
       setActiveTool('brush');
@@ -114,6 +119,17 @@ export const App: React.FC = () => {
       setActiveTool('rinse');
       setCameraPreset('overview');
     }
+  }, []);
+
+  // Handle Step Navigation
+  const handleNextStep = useCallback(() => {
+    setCurrentStepIndex((prev) => prev + 1);
+    soundEffects.playPopSound(1.15);
+  }, []);
+
+  const handlePrevStep = useCallback(() => {
+    setCurrentStepIndex((prev) => Math.max(0, prev - 1));
+    soundEffects.playPopSound(0.95);
   }, []);
 
   // Toggle Brush Angle (45° vs 90°)
@@ -132,14 +148,18 @@ export const App: React.FC = () => {
     soundEffects.playPopSound(0.8);
   }, []);
 
-  // Start Simulation & Clean Arch with Sound & Particle Cascade
+  // Start Simulation with Smooth Camera Focus & 2 Modified Bass Cycles
   const handleStartSimulation = useCallback(() => {
     if (isSimulating) return;
     setIsSimulating(true);
 
+    // Zoom camera in to focus clearly on the anterior teeth & sulcus
+    setCameraPreset('demo-focus');
+    soundEffects.playPopSound(1.2);
+
+    // Run 2 complete cycles of Modified Bass (~11.6 seconds)
     const timer = setTimeout(() => {
       if (activeTool === 'brush') {
-        // Clean buccal and occlusal
         setPlaqueSpots((prev) =>
           prev.map((s) => {
             if (s.surface === 'buccal' || s.surface === 'occlusal') {
@@ -155,7 +175,6 @@ export const App: React.FC = () => {
           })
         );
       } else if (activeTool === 'floss') {
-        // Clean interdental plaque and food debris
         setPlaqueSpots((prev) =>
           prev.map((s) => {
             if (s.surface === 'interdental') {
@@ -172,7 +191,6 @@ export const App: React.FC = () => {
         );
         setDebrisSpots((prev) => prev.map((d) => ({ ...d, cleaned: true })));
       } else if (activeTool === 'rinse') {
-        // Therapeutic Rinse cleans remaining loosened biofilm
         setPlaqueSpots((prev) =>
           prev.map((s) => {
             if (!s.cleaned) {
@@ -188,7 +206,9 @@ export const App: React.FC = () => {
 
       soundEffects.playSparkleChime();
       setIsSimulating(false);
-    }, 2800);
+      setDemoPhase(null);
+      setCameraPreset('anterior');
+    }, 11600);
 
     return () => clearTimeout(timer);
   }, [isSimulating, activeTool]);
@@ -208,10 +228,11 @@ export const App: React.FC = () => {
           currentStep={currentLesson.steps[0]}
           cameraPreset={cameraPreset}
           onCleanPlaqueSpot={handleCleanPlaqueSpot}
+          onPhaseChange={(phase) => setDemoPhase(phase)}
         />
       </div>
 
-      {/* 2. Floating Top Bar with Sound Toggle */}
+      {/* 2. Floating Top Bar */}
       <TopBar
         cleanlinessScore={cleanlinessScore}
         plaqueCleanedCount={plaqueCleanedCount}
@@ -230,7 +251,17 @@ export const App: React.FC = () => {
         onToggleMute={handleToggleMute}
       />
 
-      {/* 3. Floating Bottom Dock (Rounded-3xl, Pastel Pills with Mute Sound Toggle) */}
+      {/* 3. Floating Step-by-Step Lesson Card (Top Left) */}
+      <LessonCard
+        currentLessonId={currentLessonId}
+        currentStepIndex={currentStepIndex}
+        onNextStep={handleNextStep}
+        onPrevStep={handlePrevStep}
+        isSimulating={isSimulating}
+        demoPhase={demoPhase}
+      />
+
+      {/* 4. Modern Floating Island Bottom Dock */}
       <BottomDock
         activeTool={activeTool}
         onSelectTool={handleSelectTool}
@@ -243,15 +274,15 @@ export const App: React.FC = () => {
         onToggleMute={handleToggleMute}
       />
 
-      {/* 4. Floating Clinical Guide Popover (Large Typography) */}
+      {/* 5. Floating Clinical Guide Popover (Bottom Right) */}
       <GuidePopover
         currentLessonId={currentLessonId}
         onSelectLesson={handleSelectLesson}
       />
 
-      {/* 5. Minimalist 3D Navigation Tip (Bottom Left, Warm Sand Tone) */}
-      <div className="fixed bottom-6 left-6 z-20 pointer-events-none hidden sm:flex items-center gap-2 px-4 py-2 rounded-3xl glass-panel text-xs text-earth-muted border border-stone-200/80 shadow-sm backdrop-blur-xl">
-        <Navigation className="w-3.5 h-3.5 text-amber-500" />
+      {/* 6. Minimalist 3D Navigation Tip (Bottom Left) */}
+      <div className="fixed bottom-7 left-6 z-20 pointer-events-none hidden sm:flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-xs text-earth-muted border border-stone-200/80 shadow-sm backdrop-blur-xl">
+        <Navigation className="w-3.5 h-3.5 text-amber-600" />
         <span className="font-medium">ลากเมาส์เพื่อแปรงฟัน | หมุน 360° | สกอลล์เพื่อซูม</span>
       </div>
     </div>

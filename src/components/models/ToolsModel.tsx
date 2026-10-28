@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { soundEffects } from '../../utils/soundEffects';
 import { MANDIBULAR_ARCH_SPLINE } from '../../data/dentalLessons';
 import type { ToolType, LessonStep, PlaqueSpot } from '../../types/dental';
+import type { DemoPhase } from '../ui/LessonCard';
 
 interface ToolsModelProps {
   activeTool: ToolType;
@@ -12,6 +13,7 @@ interface ToolsModelProps {
   currentStep?: LessonStep;
   plaqueSpots?: PlaqueSpot[];
   onCleanPlaqueSpot?: (id: string, position: [number, number, number]) => void;
+  onPhaseChange?: (phase: DemoPhase) => void;
 }
 
 export const ToolsModel: React.FC<ToolsModelProps> = ({
@@ -21,6 +23,7 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
   currentStep,
   plaqueSpots,
   onCleanPlaqueSpot,
+  onPhaseChange,
 }) => {
   const brushGroupRef = useRef<THREE.Group>(null);
   const flossGroupRef = useRef<THREE.Group>(null);
@@ -30,6 +33,8 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
   const currentQuat = useRef(new THREE.Quaternion());
   const targetPos = useRef(new THREE.Vector3(0, 0.12, 2.0));
   const targetQuat = useRef(new THREE.Quaternion());
+
+  const lastReportedPhase = useRef<DemoPhase>(null);
 
   // Procedural bristles matrix: 6 tufts along length (X), 3 tufts along height (Y)
   const bristlePositions = useMemo(() => {
@@ -62,19 +67,18 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
       const u = i / count;
       const pt = MANDIBULAR_ARCH_SPLINE.getPoint(u);
       const tangent = MANDIBULAR_ARCH_SPLINE.getTangent(u).normalize();
-      // Outward buccal normal perpendicular to tangent and up vector
       const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
       samples.push({ t: u, point: pt, tangent, normal });
     }
     return samples;
   }, []);
 
-  // Smooth Brushing Physics & Authentic Modified Bass Motion Loop
+  // Brushing Physics & Authentic Modified Bass Motion Loop
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime();
     const dt = Math.min(delta, 0.1);
 
-    // --- 1. TOOTHBRUSH PHYSICS (MODIFIED BASS TECHNIQUE) ---
+    // --- 1. TOOTHBRUSH PHYSICS (MODIFIED BASS ROUTINE) ---
     if (brushGroupRef.current && activeTool === 'brush') {
       if (isAnimating) {
         if (currentStep?.motionType === 'chewing_surface') {
@@ -84,57 +88,61 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
           brushGroupRef.current.rotation.set(0, Math.PI / 2, 0);
           soundEffects.playScrubSound();
         } else {
-          // AUTHENTIC 2-PHASE MODIFIED BASS CYCLE (Jiggle & Sweep)
-          const cycleDuration = 3.2; // seconds
+          // AUTHENTIC 3-PHASE DEMO ROUTINE (Focus on Lower Anterior Teeth)
+          const cycleDuration = 5.8; // seconds per full cycle
           const cycle = t % cycleDuration;
 
-          // Tooth section index progresses across the arch
-          const sectionCount = 6;
-          const sectionIndex = Math.floor((t / cycleDuration) % sectionCount);
-          // Distribute u across arch: anterior to premolars/molars
-          const sectionUValues = [0.44, 0.56, 0.32, 0.68, 0.20, 0.80];
-          const currentU = sectionUValues[sectionIndex];
-
-          const samplePoint = MANDIBULAR_ARCH_SPLINE.getPoint(currentU);
-          const tangent = MANDIBULAR_ARCH_SPLINE.getTangent(currentU).normalize();
-          const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+          // Focus explicitly on the front lower teeth (#41, #31, #42)
+          const targetPoint = new THREE.Vector3(0, 0.08, 1.62); // anterior tooth curve center
+          const normal = new THREE.Vector3(0, 0, 1);            // facing straight outward to viewer
+          const tangent = new THREE.Vector3(1, 0, 0);           // horizontal handle along X
           const upVector = new THREE.Vector3(0, 1, 0);
 
-          // Horizontal alignment: handle follows tangent T, bristles face inward -N
-          // If on left side (x > 0), reverse handle direction so it points outwards naturally
-          const handleDir = samplePoint.x > 0 ? tangent.clone().negate() : tangent.clone();
-          const basisMatrix = new THREE.Matrix4().makeBasis(handleDir, upVector, normal);
+          // Horizontal handle orientation
+          const basisMatrix = new THREE.Matrix4().makeBasis(tangent, upVector, normal);
           const baseOrientation = new THREE.Quaternion().setFromRotationMatrix(basisMatrix);
 
-          // Safe offset from tooth enamel surface (Anti-collision guard)
-          const safeOffset = 0.38;
-          const sulcusHeight = 0.08; // gingival margin height
+          // Strict collision offset: brush head sits outside tooth enamel, bristles touch sulcus gently
+          const safeOffset = 0.44;
+          const sulcusHeight = 0.08;
+          const radBassAngle = (brushAngle * Math.PI) / 180; // 45 degrees
 
-          const radBassAngle = (brushAngle * Math.PI) / 180; // default 45°
+          let currentPhase: DemoPhase = 'position';
 
-          if (cycle < 2.2) {
-            // --- JIGGLE PHASE (Vibrate 1-2mm in the sulcus for 10 counts) ---
-            const jiggleFreq = 38; // ~19 Hz micro-vibration
-            const jiggleX = Math.sin(t * jiggleFreq) * 0.022; // 1-2 mm back-and-forth along tangent
-            const jiggleY = Math.cos(t * jiggleFreq) * 0.012; // tiny vertical sulcular flex
+          if (cycle < 1.2) {
+            // === จังหวะที่ 1 (Position/Approach): ค่อยๆ แตะเข้าที่คอฟัน ทำมุม 45 องศา ===
+            currentPhase = 'position';
+            const easeIn = THREE.MathUtils.smoothstep(cycle, 0, 1.2);
+            const brushPos = targetPoint.clone().addScaledVector(normal, safeOffset + (1 - easeIn) * 0.15);
+            brushPos.y = sulcusHeight + (1 - easeIn) * 0.2;
 
-            const brushPos = samplePoint.clone().addScaledVector(normal, safeOffset);
-            brushPos.addScaledVector(handleDir, jiggleX);
+            const tiltAngle = radBassAngle * easeIn;
+            const tiltQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), tiltAngle);
+            targetQuat.current.copy(baseOrientation).multiply(tiltQuat);
+            targetPos.current.copy(brushPos);
+          } else if (cycle < 4.6) {
+            // === จังหวะที่ 2 (Vibrate/Jiggle): สั่นวนสั้นๆ 1-2 มม. ต่อเนื่อง 3.4 วินาที ===
+            currentPhase = 'vibrate';
+            const jiggleFreq = 36;
+            const jiggleX = Math.sin(t * jiggleFreq) * 0.022; // 1-2 mm horizontal micro-vibration
+            const jiggleY = Math.cos(t * jiggleFreq) * 0.010; // tiny vertical sulcular flex
+
+            const brushPos = targetPoint.clone().addScaledVector(normal, safeOffset);
+            brushPos.x += jiggleX;
             brushPos.y = sulcusHeight + jiggleY;
 
-            // 45° angle pointing downward into sulcus
             const tiltQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), radBassAngle);
             targetQuat.current.copy(baseOrientation).multiply(tiltQuat);
-
             targetPos.current.copy(brushPos);
+
             soundEffects.playScrubSound();
 
-            // Clear plaque around this tooth section
+            // Clear plaque around front teeth with soft foam bursting
             if (plaqueSpots && onCleanPlaqueSpot) {
               for (const spot of plaqueSpots) {
                 if (!spot.cleaned) {
                   const spotVec = new THREE.Vector3(spot.position[0], spot.position[1], spot.position[2]);
-                  if (targetPos.current.distanceTo(spotVec) < 0.52) {
+                  if (targetPos.current.distanceTo(spotVec) < 0.6) {
                     onCleanPlaqueSpot(spot.id, spot.position);
                     soundEffects.playPopSound(1.0 + Math.random() * 0.25);
                     break;
@@ -143,25 +151,32 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
               }
             }
           } else {
-            // --- SWEEP PHASE (Roll wrist upward away from gums towards crown) ---
-            const sweepProgress = (cycle - 2.2) / 0.8; // 0.0 to 1.0
-            const easeSweep = Math.sin(sweepProgress * Math.PI * 0.5);
+            // === จังหวะที่ 3 (Sweep/Roll): บิดข้อมือปัดขนแปรงขึ้นด้านบนผ่านหน้าฟัน ===
+            currentPhase = 'sweep';
+            const sweepProg = (cycle - 4.6) / 1.2; // 0 to 1
+            const easeSweep = Math.sin(sweepProg * Math.PI * 0.5);
 
-            // Wrist roll angle rotates from 45° sulcular to 85° coronal roll
+            // Wrist roll angle
             const rollAngle = THREE.MathUtils.lerp(radBassAngle, radBassAngle + 0.65, easeSweep);
             const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), rollAngle);
             targetQuat.current.copy(baseOrientation).multiply(rollQuat);
 
-            // Sweeps vertically from gumline (0.08) up to occlusal crown tip (0.48)
-            const sweepY = THREE.MathUtils.lerp(sulcusHeight, 0.48, easeSweep);
-            const sweepOut = safeOffset + Math.sin(sweepProgress * Math.PI) * 0.08;
+            // Sweep upward from sulcus (0.08) to incisal tip (0.50)
+            const sweepY = THREE.MathUtils.lerp(sulcusHeight, 0.50, easeSweep);
+            const sweepOut = safeOffset + Math.sin(sweepProg * Math.PI) * 0.10;
 
-            const brushPos = samplePoint.clone().addScaledVector(normal, sweepOut);
+            const brushPos = targetPoint.clone().addScaledVector(normal, sweepOut);
             brushPos.y = sweepY;
             targetPos.current.copy(brushPos);
           }
 
-          // Smooth Lerp
+          // Report real-time phase change to UI
+          if (onPhaseChange && currentPhase !== lastReportedPhase.current) {
+            lastReportedPhase.current = currentPhase;
+            onPhaseChange(currentPhase);
+          }
+
+          // Smooth Lerp/Slerp
           currentPos.current.lerp(targetPos.current, 1 - Math.pow(0.001, dt));
           currentQuat.current.slerp(targetQuat.current, 1 - Math.pow(0.001, dt));
 
@@ -170,6 +185,11 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
         }
       } else {
         // --- INTERACTIVE MOUSE-GUIDED MODE (HORIZONTAL TANGENT ALIGNMENT) ---
+        if (lastReportedPhase.current !== null && onPhaseChange) {
+          lastReportedPhase.current = null;
+          onPhaseChange(null);
+        }
+
         const px = state.pointer.x * 2.5;
         const py = state.pointer.y * 1.5;
 
@@ -187,7 +207,6 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
           }
         }
 
-        // Horizontal Handle Alignment: Handle follows tangent of the arch
         const tangent = bestSample.tangent;
         const normal = bestSample.normal;
         const upVector = new THREE.Vector3(0, 1, 0);
@@ -196,20 +215,18 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
         const basisMatrix = new THREE.Matrix4().makeBasis(handleDir, upVector, normal);
         const baseOrientation = new THREE.Quaternion().setFromRotationMatrix(basisMatrix);
 
-        // Anti-Collision Offset: Keep brush head securely outside tooth geometry
-        const safeOffset = 0.38;
+        // Anti-Collision Offset
+        const safeOffset = 0.42;
         const mappedY = THREE.MathUtils.clamp(py * 0.75 + 0.16, -0.05, 0.75);
 
         const goal = bestSample.point.clone().addScaledVector(normal, safeOffset);
         goal.y = mappedY;
         targetPos.current.copy(goal);
 
-        // When near gumline (sulcus zone y in [0.0, 0.24]):
         const isNearSulcus = Math.abs(mappedY - 0.08) < 0.20;
         const radBassAngle = (brushAngle * Math.PI) / 180;
 
         if (isNearSulcus) {
-          // Automatic 45° angle alignment into sulcus + micro-vibrating jiggle
           const jiggle = Math.sin(t * 36) * 0.018;
           targetPos.current.addScaledVector(handleDir, jiggle);
           targetPos.current.y += Math.cos(t * 36) * 0.01;
@@ -232,12 +249,10 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
             }
           }
         } else {
-          // Relaxed angle when away from sulcus
           const tiltQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), radBassAngle * 0.5);
           targetQuat.current.copy(baseOrientation).multiply(tiltQuat);
         }
 
-        // Smooth Lerp Interpolation
         currentPos.current.lerp(targetPos.current, 1 - Math.pow(0.001, dt));
         currentQuat.current.slerp(targetQuat.current, 1 - Math.pow(0.001, dt));
 
@@ -273,16 +288,16 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
     <group name="clinical-tools">
       {/* 
         TOOTHBRUSH MODEL:
-        Handle lies HORIZONTALLY along local X-axis (Tangent to jaw arch curve!)
-        Bristles sprout in -Z (Inward against teeth) and angled 45° into sulcus.
+        Handle extends HORIZONTALLY along local +X axis (Tangent to jaw arch curve)
+        Bristles point in -Z (Inward against teeth) and angled 45° into sulcus.
       */}
       {activeTool === 'brush' && (
         <group ref={brushGroupRef}>
-          {/* Head: Spans 2-3 teeth horizontally (Length along X = 0.62, Height Y = 0.22, Depth Z = 0.08) */}
+          {/* Head: Spans 2-3 teeth horizontally */}
           <mesh position={[0, 0, 0]} castShadow>
             <boxGeometry args={[0.62, 0.22, 0.08]} />
             <meshStandardMaterial
-              color="#38BDF8" // Pastel Sky Blue
+              color="#38BDF8"
               roughness={0.28}
               metalness={0.04}
             />
@@ -359,56 +374,43 @@ export const ToolsModel: React.FC<ToolsModelProps> = ({
         </group>
       )}
 
-      {/* RINSE / HYDRAULIC SWIRL */}
-      {activeTool === 'rinse' && (
+      {/* 
+        RINSE SWIRL:
+        ONLY rendered during active animation! (Completely removes any idle blue cylinder hovering in the teeth!)
+      */}
+      {activeTool === 'rinse' && isAnimating && (
         <group ref={rinseGroupRef}>
-          {isAnimating ? (
-            <group>
-              <mesh scale={[2.4, 0.9, 2.2]} position={[0, 0.1, 0]}>
-                <sphereGeometry args={[1.0, 24, 24]} />
-                <meshPhysicalMaterial
-                  color="#BAE6FD"
-                  transparent
-                  opacity={0.22}
-                  roughness={0.1}
-                  transmission={0.8}
-                />
-              </mesh>
+          <mesh scale={[2.4, 0.9, 2.2]} position={[0, 0.1, 0]}>
+            <sphereGeometry args={[1.0, 24, 24]} />
+            <meshPhysicalMaterial
+              color="#BAE6FD"
+              transparent
+              opacity={0.22}
+              roughness={0.1}
+              transmission={0.8}
+            />
+          </mesh>
 
-              {[...Array(32)].map((_, i) => {
-                const angle = (i / 32) * Math.PI * 2;
-                const rx = 1.9 + (i % 3) * 0.2;
-                const rz = 1.6 + (i % 4) * 0.2;
-                const y = ((i % 5) - 2) * 0.18;
-                return (
-                  <mesh
-                    key={i}
-                    position={[Math.sin(angle) * rx, y, Math.cos(angle) * rz]}
-                  >
-                    <sphereGeometry args={[0.045 + (i % 3) * 0.02, 8, 8]} />
-                    <meshStandardMaterial
-                      color="#FFFFFF"
-                      roughness={0.2}
-                      transparent
-                      opacity={0.8}
-                    />
-                  </mesh>
-                );
-              })}
-            </group>
-          ) : (
-            <group position={[0, 1.5, 1.2]}>
-              <mesh>
-                <cylinderGeometry args={[0.22, 0.18, 0.38, 16]} />
+          {[...Array(32)].map((_, i) => {
+            const angle = (i / 32) * Math.PI * 2;
+            const rx = 1.9 + (i % 3) * 0.2;
+            const rz = 1.6 + (i % 4) * 0.2;
+            const y = ((i % 5) - 2) * 0.18;
+            return (
+              <mesh
+                key={i}
+                position={[Math.sin(angle) * rx, y, Math.cos(angle) * rz]}
+              >
+                <sphereGeometry args={[0.045 + (i % 3) * 0.02, 8, 8]} />
                 <meshStandardMaterial
-                  color="#7DD3FC"
-                  transparent
-                  opacity={0.65}
+                  color="#FFFFFF"
                   roughness={0.2}
+                  transparent
+                  opacity={0.8}
                 />
               </mesh>
-            </group>
-          )}
+            );
+          })}
         </group>
       )}
     </group>

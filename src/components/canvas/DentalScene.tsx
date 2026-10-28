@@ -16,6 +16,7 @@ import type {
   LessonStep,
   CameraPreset,
 } from '../../types/dental';
+import type { DemoPhase } from '../ui/LessonCard';
 
 interface DentalSceneProps {
   plaqueSpots: PlaqueSpot[];
@@ -28,6 +29,7 @@ interface DentalSceneProps {
   currentStep?: LessonStep;
   cameraPreset: CameraPreset;
   onCleanPlaqueSpot: (id: string, position: [number, number, number]) => void;
+  onPhaseChange?: (phase: DemoPhase) => void;
 }
 
 const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
@@ -42,6 +44,10 @@ const CameraController: React.FC<{ preset: CameraPreset }> = ({ preset }) => {
       case 'overview':
         targetPos = new THREE.Vector3(0, 3.4, 4.7);
         targetLook = new THREE.Vector3(0, 0.1, 0.2);
+        break;
+      case 'demo-focus':
+        targetPos = new THREE.Vector3(0, 0.45, 2.85); // Crisp close-up focusing directly on front teeth and sulcus
+        targetLook = new THREE.Vector3(0, 0.16, 1.45);
         break;
       case 'anterior':
         targetPos = new THREE.Vector3(0, 0.65, 3.6);
@@ -92,6 +98,7 @@ export const DentalScene: React.FC<DentalSceneProps> = ({
   currentStep,
   cameraPreset,
   onCleanPlaqueSpot,
+  onPhaseChange,
 }) => {
   return (
     <div className="w-full h-full">
@@ -157,6 +164,7 @@ export const DentalScene: React.FC<DentalSceneProps> = ({
             currentStep={currentStep}
             plaqueSpots={plaqueSpots}
             onCleanPlaqueSpot={onCleanPlaqueSpot}
+            onPhaseChange={onPhaseChange}
           />
           <ParticlesModel bursts={bursts} />
 
