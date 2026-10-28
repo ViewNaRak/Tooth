@@ -1,36 +1,32 @@
-# 🦷 Tooth — Friendly 3D Oral Care Simulator (Pastel & Clay Toy Edition)
+# 🦷 Tooth — 3D Interactive Full Dental Arch Simulator
 
-> An accessible, friendly, and non-intimidating 3D dental simulator designed to reduce dental anxiety through warm pastel aesthetics, clay/vinyl toy stylization, procedural Web Audio sound effects, and interactive mouse-guided brushing physics.
+> An accessible, friendly, and non-intimidating 3D dental simulator designed to teach proper brushing (Modified Bass 45°), flossing (C-Shape), and oral hygiene on an **Anatomical U-Arch Dental Model (16 smooth stylized teeth & tube-lofted gums)**.
 
 ---
 
-## 🌟 Key Upgrades & Highlights (จุดเด่นและการปรับปรุงล่าสุด)
+## 🌟 Key Features & Improvements (ฟีเจอร์และการปรับปรุงล่าสุด)
 
-### 1. Mood & Tone: Friendly Pastel & Earth Tone (ลด Dental Anxiety)
-- **Warm Cream Background (`#FDFBF7`)**: สบายตา อบอุ่น นุ่มนวล ไม่น่ากลัว
-- **Frosted Glass Cards (`rounded-3xl`)**: แผงควบคุมสไตล์ Frosted Glass มนโค้งพิเศษ สีขาวนวลโปร่งแสง 90% พร้อมเงาฟุ้งละมุน
-- **Earth Tone Deep Brown (`#2E2A27`)**: สีตัวอักษรเพื่อความคมชัดและสบายตาเป็นเลิศ
+### 1. โมเดล 3D แผงฟันและเหงือกใหม่ทั้งหมด (Anatomical U-Arch)
+- **ฐานเหงือกรูปตัว U (Anatomical U-Arch Gum)**:
+  - ใช้ `CatmullRomCurve3` ดัดโค้งเป็นรูปเกือกม้าตัว U ตามแนวขากรรไกรล่างธรรมชาติ ร่วมกับ `TubeGeometry`
+  - ปราศจากฐานทรงกระบอกกลมแบนเดิม 100% เหงือกโอบรับโคนฟันทุกซี่อย่างแนบสนิท
+  - สีชมพูพีชพาสเทลละมุน (`#F4978E` / `#EE887F`) สัมผัสดินปั้นกึ่งเงา (`Roughness 0.4`)
+- **ฟันขอบมนสไตล์ Smooth Clay Art ([TeethModel.tsx](file:///d:/Github/Tooth/src/components/models/TeethModel.tsx))**:
+  - สร้างด้วย `@react-three/drei` `RoundedBox` ไร้เหลี่ยมคม ปราศจากรอยต่อหรือแผ่นหยักซ้อนกัน
+  - **ฟันหน้า (Incisors)**: ทรงแบนมน ปลายโค้งมน ขนาดพอดี
+  - **ฟันเขี้ยว (Canines)**: ทรงกรวยมน ปลายไม่แหลมจนน่ากลัว
+  - **ฟันกรามน้อยและกรามใหญ่ (Premolars & Molars)**: ด้านบดเคี้ยวโค้งมน มีร่องฟันนุ่มๆ 4 ปุ่ม (Pillowy Cusps)
+  - **สีฟัน**: ขาวนวลไข่มุกธรรมชาติ (`#FFFDF9`) เคลือบเงาสะอาดตา (`MeshPhysicalMaterial`, `Roughness 0.22`, `Clearcoat 0.35`)
 
-### 2. Large & Comfortable Typography (ตัวหนังสือขนาดใหญ่ อ่านสบายตา)
-- **หัวข้อและขั้นตอนหลัก**: ขนาด `text-xl` ถึง `text-2xl` หนาพิเศษ ชัดเจน ไม่ต้องเพ่ง
-- **เนื้อหาคำแนะนำ**: ขนาด `text-base` ถึง `text-lg` พร้อม `leading-relaxed` เว้นระยะบรรทัดโปร่งสบาย
+### 2. ปรับปรุงฟิสิกส์การแปรงฟัน (Smooth Anti-Collision & Modified Bass)
+- **Automatic 45° Alignment**: ขนแปรงหันเข้าหาแนวร่องเหงือก (Sulcus) ทำมุม 45 องศาโดยอัตโนมัติเมื่อเลื่อนเข้าไปใกล้
+- **Anti-Collision Guard**: มีระยะ Offset คำนวณตามเวกเตอร์แนวตั้งฉาก (Normal Vector) ป้องกันไม่ให้หัวแปรงจมทะลุเข้าไปในเนื้อฟัน
+- **แอนิเมชัน Modified Bass**: สั่นวนเป็นวงสั้นๆ (Micro-vibration) ในร่องเหงือก 2-3 วินาที แล้วปัดขึ้นไปทางปลายฟัน (Coronal Sweep)
+- **ฟองโฟมและประกายละออง**: คราบพลัคจะค่อยๆ ละลายกลายเป็นฟองโฟมสีขาวนุ่มพวยพุ่งแตกตัวออก พร้อมเสียง Pop น่ารัก
 
-### 3. Clay / Vinyl Toy 3D Aesthetic
-- **Stylized Soft Teeth**: ฟัน 16 ซี่รูปทรงโค้งมนเป็นมิตร ผิวสัมผัสแบบ Clay/Vinyl toy กึ่งเงา (`Roughness 0.35`, `Metalness 0.05`) สีงาช้างอุ่นธรรมชาติ (`#FAF8F0`)
-- **Pastel Peach Gums**: ฐานเหงือกสีชมพูพีชพาสเทลนุ่มนวล (`#F9ABA2`)
-- **Warm Soft Studio Lighting**: แสงนวลไร้เงามืดจัด สว่าง อบอุ่น และเป็นมิตร
-
-### 4. Smooth Brushing Physics & Sparkle Particles
-- **Interactive Mouse Tracking**: หัวแปรงเคลื่อนที่ตามเคอร์เซอร์เมาส์ด้วยความนุ่มนวลสูง (Lerp Interpolation)
-- **Micro-vibrations (Bass Sweep)**: สั่นวนอัตโนมัติเมื่อหัวแปรงอยู่ในแนวร่องเหงือกทำมุม 45°
-- **Sparkle / Foam Burst Effect**: ละอองประกายและฟองโฟมสีขาวนุ่มพวยพุ่งเมื่อคราบพลัคหรือเศษอาหารแตกสลาย
-
-### 5. Procedural Web Audio FX (ไม่ต้องพึ่งพาไฟล์เสียงภายนอก)
-- สังเคราะห์เสียงแบบเรียลไทม์ 100% ผ่าน Web Audio API:
-  * 🪥 **เสียงขัดฟัน (Soft Scrub/Brush Squeak)**: เสียงฟึดฟัดนุ่มนวลเป็นจังหวะขณะถูแปรง
-  * 🫧 **เสียงคราบหลุด (Bubble Pop)**: เสียงฟองสบู่แตก "ป๊อป!" สดใสน่ารัก
-  * ✨ **เสียงสำเร็จ (Sparkle Chime)**: เสียงกระดิ่งคอร์ดใสก้องกังวานเมื่อทำความสะอาดเสร็จสิ้น
-- **ปุ่ม Mute / Unmute**: ควบคุมเสียงเปิด/ปิดได้สะดวกที่มุมขวาบนของหน้าจอ
+### 3. ปุ่มเปิด/ปิดเสียง (Sound Toggle) ใน Bottom Dock
+- เพิ่มปุ่มเปิด/ปิดเสียง (`Volume2` / `VolumeX`) ไว้ข้างๆ แถบสลับเครื่องมือในแถวเดียวกันอย่างกลมกลืน
+- ควบคุมเสียงสังเคราะห์ทั้งหมดจาก Web Audio API (เสียงขัดฟัน, เสียงคราบหลุด, เสียงกระดิ่งฉลอง)
 
 ---
 
@@ -41,22 +37,22 @@ Tooth/
 ├── src/
 │   ├── components/
 │   │   ├── canvas/
-│   │   │   └── DentalScene.tsx       # Soft Studio Lighting, Canvas & Camera Controller
+│   │   │   └── DentalScene.tsx       # Soft Studio Lighting, Canvas & Orbit Controls
 │   │   ├── models/
-│   │   │   ├── TeethModel.tsx        # 16-Tooth Full Dental Arch (Clay/Vinyl Toy Soft Mesh)
-│   │   │   ├── GumsModel.tsx         # Soft Peach Pastel Mandibular Gingiva
+│   │   │   ├── TeethModel.tsx        # 16 Smooth Rounded Teeth (RoundedBox Clay Aesthetic)
+│   │   │   ├── GumsModel.tsx         # Anatomical U-Arch Tube Gingiva (No Flat Disc)
 │   │   │   ├── PlaqueModel.tsx       # Biofilm Clusters with Disclosing Dye Support
 │   │   │   ├── DebrisModel.tsx       # Interdental Food Particles
-│   │   │   ├── ToolsModel.tsx        # Smooth Lerp Brushing Physics & Interactive Proximity
+│   │   │   ├── ToolsModel.tsx        # Anti-Collision Physics & 45° Sulcular Alignment
 │   │   │   └── ParticlesModel.tsx    # Sparkle & Foam Bubble Burst System
 │   │   └── ui/
-│   │       ├── TopBar.tsx            # Frosted Glass rounded-3xl Top Bar + Mute Toggle
-│   │       ├── BottomDock.tsx        # Frosted Glass rounded-3xl Tool Controller
+│   │       ├── TopBar.tsx            # Camera Presets & Cleanliness Meter
+│   │       ├── BottomDock.tsx        # Tool Selector + Sound Toggle in Same Row
 │   │       └── GuidePopover.tsx      # Large Typography Step-by-Step Popover Card
 │   ├── utils/
 │   │   └── soundEffects.ts           # Procedural Web Audio API Sound Synthesizer
 │   ├── data/
-│   │   └── dentalLessons.ts          # Dental Arch Metadata & Standard Guidelines
+│   │   └── dentalLessons.ts          # Mandibular Spline & 16-Tooth Arch Metadata
 │   ├── types/
 │   │   └── dental.ts                 # Strict TypeScript Type Definitions
 │   ├── App.tsx                       # Coordinator
@@ -70,12 +66,12 @@ Tooth/
 
 ---
 
-## 🚀 วิธีการทดสอบและรัน (How to Run)
+## 🚀 คำสั่งรันโปรเจกต์ (Run Project)
 
 ```powershell
-# 1. รันโหมด Development
+# รันโหมด Development
 npm run dev
 
-# 2. ตรวจสอบ Production Build
+# ทดสอบ Production Build
 npm run build
 ```

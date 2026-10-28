@@ -230,7 +230,7 @@ export const App: React.FC = () => {
         onToggleMute={handleToggleMute}
       />
 
-      {/* 3. Floating Bottom Dock (Rounded-3xl, Pastel Pills) */}
+      {/* 3. Floating Bottom Dock (Rounded-3xl, Pastel Pills with Mute Sound Toggle) */}
       <BottomDock
         activeTool={activeTool}
         onSelectTool={handleSelectTool}
@@ -239,6 +239,8 @@ export const App: React.FC = () => {
         isSimulating={isSimulating}
         onStartSimulation={handleStartSimulation}
         onResetPlaque={handleResetPlaque}
+        isMuted={isMuted}
+        onToggleMute={handleToggleMute}
       />
 
       {/* 4. Floating Clinical Guide Popover (Large Typography) */}

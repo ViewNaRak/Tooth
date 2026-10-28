@@ -1,207 +1,99 @@
 import React, { useMemo } from 'react';
+import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { FULL_DENTAL_ARCH_TEETH } from '../../data/dentalLessons';
-import type { ToothInfo, ToothClassification } from '../../types/dental';
+import type { ToothInfo } from '../../types/dental';
 
-// Helper to create friendly, stylized soft Clay/Vinyl toy teeth geometries
-function createFriendlyToothGeometry(classification: ToothClassification): THREE.BufferGeometry {
-  if (classification === 'incisor') {
-    // Friendly rounded spade/chisel crown
-    const geom = new THREE.BoxGeometry(0.85, 1.25, 0.58, 16, 16, 16);
-    const pos = geom.attributes.position;
-    const v = new THREE.Vector3();
-
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i);
-      const hNorm = (v.y + 0.625) / 1.25;
-
-      // Soft cervical taper
-      if (hNorm < 0.35) {
-        v.x *= 0.88;
-        v.z *= 0.9;
-      }
-      // Rounded incisal edge
-      if (hNorm > 0.65) {
-        const factor = (hNorm - 0.65) / 0.35;
-        v.z *= 1.0 - factor * 0.4;
-        v.x *= 1.0 + factor * 0.06;
-      }
-      // Gentle rounded labial puff
-      if (v.z > 0) {
-        v.z += 0.05 * Math.sin(hNorm * Math.PI);
-      }
-      pos.setXYZ(i, v.x, v.y, v.z);
-    }
-    geom.computeVertexNormals();
-    return geom;
-  }
-
-  if (classification === 'canine') {
-    // Friendly rounded cuspid (soft apex, no sharp threatening points)
-    const geom = new THREE.CylinderGeometry(0.26, 0.46, 1.35, 20, 16);
-    const pos = geom.attributes.position;
-    const v = new THREE.Vector3();
-
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i);
-      const hNorm = (v.y + 0.675) / 1.35;
-
-      v.z *= 0.92;
-
-      // Smooth soft apex (not needle-sharp)
-      if (hNorm > 0.65) {
-        const factor = (hNorm - 0.65) / 0.35;
-        v.x *= 1.0 - factor * 0.45;
-        v.z *= 1.0 - factor * 0.45;
-        v.y += factor * 0.08;
-      }
-      // Soft labial curve
-      if (v.z > 0) {
-        v.z += 0.05 * Math.sin(hNorm * Math.PI);
-      }
-      pos.setXYZ(i, v.x, v.y, v.z);
-    }
-    geom.computeVertexNormals();
-    return geom;
-  }
-
-  if (classification === 'premolar') {
-    // Cute rounded bicuspid with smooth pillowy cusps
-    const geom = new THREE.BoxGeometry(0.96, 1.15, 0.92, 16, 16, 16);
-    const pos = geom.attributes.position;
-    const v = new THREE.Vector3();
-
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i);
-      const hNorm = (v.y + 0.575) / 1.15;
-
-      // Pillowy rounding of vertical edges
-      const r = Math.sqrt(v.x * v.x + v.z * v.z);
-      if (r > 0.38) {
-        v.x *= 0.94;
-        v.z *= 0.94;
-      }
-      if (hNorm < 0.35) {
-        v.x *= 0.88;
-        v.z *= 0.88;
-      }
-      // Smooth occlusal dip
-      if (v.y > 0.25) {
-        const factor = (v.y - 0.25) / 0.325;
-        if (Math.abs(v.z) < 0.16) {
-          v.y -= 0.1 * (1 - Math.abs(v.z) / 0.16) * factor;
-        } else {
-          v.y += 0.06 * factor;
-        }
-      }
-      pos.setXYZ(i, v.x, v.y, v.z);
-    }
-    geom.computeVertexNormals();
-    return geom;
-  }
-
-  // Molar: Cute friendly multi-cusp crown with rounded pillowy forms
-  const geom = new THREE.BoxGeometry(1.18, 1.15, 1.12, 18, 16, 18);
-  const pos = geom.attributes.position;
-  const v = new THREE.Vector3();
-
-  for (let i = 0; i < pos.count; i++) {
-    v.fromBufferAttribute(pos, i);
-    const hNorm = (v.y + 0.575) / 1.15;
-
-    // Soft rounded corners
-    const r = Math.sqrt(v.x * v.x + v.z * v.z);
-    if (r > 0.44) {
-      v.x *= 0.94;
-      v.z *= 0.94;
-    }
-
-    if (hNorm < 0.35) {
-      v.x *= 0.88;
-      v.z *= 0.88;
-    }
-
-    // Occlusal smooth valleys & soft rounded cusps
-    if (v.y > 0.25) {
-      const factor = (v.y - 0.25) / 0.325;
-      const d = Math.sqrt(v.x * v.x + v.z * v.z);
-
-      if (d < 0.3) {
-        v.y -= 0.12 * (1 - d / 0.3) * factor;
-      }
-
-      const absX = Math.abs(v.x);
-      const absZ = Math.abs(v.z);
-      if (absX > 0.16 && absZ > 0.16) {
-        const bump = Math.sin((absX - 0.16) * 3.2) * Math.sin((absZ - 0.16) * 3.2);
-        v.y += Math.max(0, bump) * 0.1 * factor;
-      }
-    }
-    pos.setXYZ(i, v.x, v.y, v.z);
-  }
-  geom.computeVertexNormals();
-  return geom;
+interface ToothProps {
+  tooth: ToothInfo;
+  material: THREE.Material;
 }
 
-const SingleToothMesh: React.FC<{
-  tooth: ToothInfo;
-  geometries: Record<ToothClassification, THREE.BufferGeometry>;
-  material: THREE.Material;
-}> = ({ tooth, geometries, material }) => {
-  const geom = geometries[tooth.classification];
-
+// 1. Incisor: Smooth Rounded Blade
+const IncisorTooth: React.FC<ToothProps> = ({ tooth, material }) => {
   return (
-    <group
-      name={tooth.id}
-      position={tooth.position}
-      rotation={tooth.rotation}
-      scale={tooth.scale}
-    >
-      <mesh geometry={geom} material={material} castShadow receiveShadow />
+    <group position={tooth.position} rotation={tooth.rotation} scale={tooth.scale}>
+      <RoundedBox args={[0.33, 0.60, 0.25]} radius={0.06} smoothness={6} material={material} castShadow receiveShadow />
+    </group>
+  );
+};
 
-      {/* Internal warm glow */}
-      <mesh position={[0, -0.05, 0]} scale={[0.84, 0.9, 0.84]}>
-        <sphereGeometry args={[0.36, 12, 12]} />
-        <meshStandardMaterial
-          color="#fef3c7"
-          roughness={0.8}
-          transparent
-          opacity={0.18}
-        />
+// 2. Canine: Smooth Rounded Bullet / Cone
+const CanineTooth: React.FC<ToothProps> = ({ tooth, material }) => {
+  return (
+    <group position={tooth.position} rotation={tooth.rotation} scale={tooth.scale}>
+      <RoundedBox args={[0.36, 0.68, 0.36]} radius={0.14} smoothness={6} material={material} castShadow receiveShadow />
+    </group>
+  );
+};
+
+// 3. Premolar: Smooth Pillowy Bicuspid
+const PremolarTooth: React.FC<ToothProps> = ({ tooth, material }) => {
+  return (
+    <group position={tooth.position} rotation={tooth.rotation} scale={tooth.scale}>
+      {/* Main Crown Body */}
+      <RoundedBox args={[0.42, 0.56, 0.44]} radius={0.10} smoothness={6} material={material} castShadow receiveShadow />
+      {/* Soft rounded buccal and lingual cusps */}
+      <mesh position={[0, 0.28, 0.1]} material={material}>
+        <sphereGeometry args={[0.11, 10, 10]} />
+      </mesh>
+      <mesh position={[0, 0.28, -0.1]} material={material}>
+        <sphereGeometry args={[0.11, 10, 10]} />
+      </mesh>
+    </group>
+  );
+};
+
+// 4. Molar: Soft Rounded Occlusal Table with 4 pillowy cusps
+const MolarTooth: React.FC<ToothProps> = ({ tooth, material }) => {
+  return (
+    <group position={tooth.position} rotation={tooth.rotation} scale={tooth.scale}>
+      {/* Main Molar Block with soft rounded corners */}
+      <RoundedBox args={[0.54, 0.54, 0.56]} radius={0.12} smoothness={6} material={material} castShadow receiveShadow />
+      
+      {/* 4 Soft Pillowy Cusps (Mesiobuccal, Distobuccal, Mesiolingual, Distolingual) */}
+      <mesh position={[-0.14, 0.27, 0.14]} material={material}>
+        <sphereGeometry args={[0.12, 10, 10]} />
+      </mesh>
+      <mesh position={[0.14, 0.27, 0.14]} material={material}>
+        <sphereGeometry args={[0.12, 10, 10]} />
+      </mesh>
+      <mesh position={[-0.14, 0.27, -0.14]} material={material}>
+        <sphereGeometry args={[0.12, 10, 10]} />
+      </mesh>
+      <mesh position={[0.14, 0.27, -0.14]} material={material}>
+        <sphereGeometry args={[0.12, 10, 10]} />
       </mesh>
     </group>
   );
 };
 
 export const TeethModel: React.FC = () => {
-  // Friendly Clay / Vinyl Toy Material: Warm creamy ivory, soft satin finish
-  const clayEnamelMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: '#FAF8F0', // Warm creamy natural ivory
-      roughness: 0.35,  // As specified: Roughness 0.35
-      metalness: 0.05,  // As specified: Metalness 0.05
+  // Pearly White Clay Material: Smooth, friendly, subtle clean shine
+  const toothMaterial = useMemo(() => {
+    return new THREE.MeshPhysicalMaterial({
+      color: '#FFFDF9',     // Natural Pearly Warm White
+      roughness: 0.22,      // Smooth porcelain / clay sheen
+      metalness: 0.02,
+      clearcoat: 0.35,      // Light gloss varnish
+      clearcoatRoughness: 0.12,
     });
   }, []);
 
-  const geometries = useMemo(() => {
-    return {
-      incisor: createFriendlyToothGeometry('incisor'),
-      canine: createFriendlyToothGeometry('canine'),
-      premolar: createFriendlyToothGeometry('premolar'),
-      molar: createFriendlyToothGeometry('molar'),
-    };
-  }, []);
-
   return (
-    <group name="full-dental-arch-teeth">
-      {FULL_DENTAL_ARCH_TEETH.map((tooth) => (
-        <SingleToothMesh
-          key={tooth.id}
-          tooth={tooth}
-          geometries={geometries}
-          material={clayEnamelMaterial}
-        />
-      ))}
+    <group name="smooth-stylized-teeth">
+      {FULL_DENTAL_ARCH_TEETH.map((tooth) => {
+        if (tooth.classification === 'incisor') {
+          return <IncisorTooth key={tooth.id} tooth={tooth} material={toothMaterial} />;
+        }
+        if (tooth.classification === 'canine') {
+          return <CanineTooth key={tooth.id} tooth={tooth} material={toothMaterial} />;
+        }
+        if (tooth.classification === 'premolar') {
+          return <PremolarTooth key={tooth.id} tooth={tooth} material={toothMaterial} />;
+        }
+        return <MolarTooth key={tooth.id} tooth={tooth} material={toothMaterial} />;
+      })}
     </group>
   );
 };

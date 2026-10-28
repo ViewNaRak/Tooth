@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import type {
   DentalLesson,
   ToothInfo,
@@ -5,18 +6,39 @@ import type {
   DebrisSpot,
 } from '../types/dental';
 
-// Full 16-Tooth Mandibular (Lower) Dental Arch
+// Construct the Canonical Mandibular U-Arch Spline Curve
+export const MANDIBULAR_ARCH_SPLINE = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-2.05, -0.05, -1.55), // Right 3rd Molar #48
+  new THREE.Vector3(-1.92, -0.03, -0.95), // Right 2nd Molar #47
+  new THREE.Vector3(-1.75, 0.0, -0.28),   // Right 1st Molar #46
+  new THREE.Vector3(-1.50, 0.02, 0.35),   // Right 2nd Premolar #45
+  new THREE.Vector3(-1.24, 0.03, 0.86),   // Right 1st Premolar #44
+  new THREE.Vector3(-0.90, 0.04, 1.25),   // Right Canine #43
+  new THREE.Vector3(-0.54, 0.03, 1.50),   // Right Lateral Incisor #42
+  new THREE.Vector3(-0.18, 0.02, 1.62),   // Right Central Incisor #41
+  new THREE.Vector3(0.0, 0.02, 1.64),     // Midline Contact
+  new THREE.Vector3(0.18, 0.02, 1.62),    // Left Central Incisor #31
+  new THREE.Vector3(0.54, 0.03, 1.50),    // Left Lateral Incisor #32
+  new THREE.Vector3(0.90, 0.04, 1.25),    // Left Canine #33
+  new THREE.Vector3(1.24, 0.03, 0.86),    // Left 1st Premolar #34
+  new THREE.Vector3(1.50, 0.02, 0.35),    // Left 2nd Premolar #35
+  new THREE.Vector3(1.75, 0.0, -0.28),    // Left 1st Molar #36
+  new THREE.Vector3(1.92, -0.03, -0.95),  // Left 2nd Molar #37
+  new THREE.Vector3(2.05, -0.05, -1.55),  // Left 3rd Molar #38
+]);
+
+// 16 Anatomical Teeth aligned along the U-Curve
 export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
   // --- Right Quadrant (FDI 48 -> 41) ---
   {
     id: 'tooth-48',
     fdaNumber: 48,
     name: 'Right 3rd Molar',
-    thaiName: 'ฟันกรามแท้ซี่ที่ 3 ขวา (ฟันคุด)',
+    thaiName: 'ฟันกรามแท้ซี่ที่ 3 ขวา',
     classification: 'molar',
-    position: [-2.02, 0.28, -1.6],
-    rotation: [0, 1.48, -0.04],
-    scale: [0.66, 0.64, 0.68],
+    position: [-2.05, 0.22, -1.55],
+    rotation: [0, 1.52, 0],
+    scale: [0.95, 0.9, 0.95],
   },
   {
     id: 'tooth-47',
@@ -24,9 +46,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Right 2nd Molar',
     thaiName: 'ฟันกรามแท้ซี่ที่ 2 ขวา',
     classification: 'molar',
-    position: [-1.90, 0.32, -0.96],
-    rotation: [0, 1.38, -0.03],
-    scale: [0.72, 0.70, 0.74],
+    position: [-1.92, 0.24, -0.95],
+    rotation: [0, 1.40, 0],
+    scale: [1.02, 0.95, 1.02],
   },
   {
     id: 'tooth-46',
@@ -34,9 +56,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Right 1st Molar',
     thaiName: 'ฟันกรามแท้ซี่ที่ 1 ขวา',
     classification: 'molar',
-    position: [-1.72, 0.34, -0.28],
-    rotation: [0, 1.25, -0.02],
-    scale: [0.78, 0.74, 0.80],
+    position: [-1.75, 0.26, -0.28],
+    rotation: [0, 1.24, 0],
+    scale: [1.08, 0.98, 1.08],
   },
   {
     id: 'tooth-45',
@@ -44,9 +66,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Right 2nd Premolar',
     thaiName: 'ฟันกรามน้อยซี่ที่ 2 ขวา',
     classification: 'premolar',
-    position: [-1.48, 0.35, 0.34],
-    rotation: [0, 1.05, -0.02],
-    scale: [0.54, 0.68, 0.58],
+    position: [-1.50, 0.27, 0.35],
+    rotation: [0, 1.04, 0],
+    scale: [1.0, 1.0, 1.0],
   },
   {
     id: 'tooth-44',
@@ -54,9 +76,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Right 1st Premolar',
     thaiName: 'ฟันกรามน้อยซี่ที่ 1 ขวา',
     classification: 'premolar',
-    position: [-1.22, 0.36, 0.82],
-    rotation: [0, 0.82, -0.01],
-    scale: [0.50, 0.68, 0.54],
+    position: [-1.24, 0.28, 0.86],
+    rotation: [0, 0.82, 0],
+    scale: [0.96, 1.0, 0.96],
   },
   {
     id: 'tooth-43',
@@ -64,9 +86,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Right Canine',
     thaiName: 'ฟันเขี้ยวขวา',
     classification: 'canine',
-    position: [-0.90, 0.38, 1.20],
-    rotation: [0, 0.56, 0],
-    scale: [0.46, 0.76, 0.48],
+    position: [-0.90, 0.32, 1.25],
+    rotation: [0, 0.58, 0],
+    scale: [1.0, 1.08, 1.0],
   },
   {
     id: 'tooth-42',
@@ -74,9 +96,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Right Lateral Incisor',
     thaiName: 'ฟันตัดข้างขวา',
     classification: 'incisor',
-    position: [-0.54, 0.38, 1.45],
-    rotation: [0, 0.28, 0.01],
-    scale: [0.40, 0.72, 0.38],
+    position: [-0.54, 0.30, 1.50],
+    rotation: [0, 0.30, 0],
+    scale: [0.96, 1.02, 0.96],
   },
   {
     id: 'tooth-41',
@@ -84,9 +106,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Right Central Incisor',
     thaiName: 'ฟันตัดกลางขวา',
     classification: 'incisor',
-    position: [-0.19, 0.38, 1.55],
-    rotation: [0, 0.09, 0.02],
-    scale: [0.38, 0.72, 0.36],
+    position: [-0.18, 0.30, 1.62],
+    rotation: [0, 0.10, 0],
+    scale: [1.0, 1.02, 1.0],
   },
 
   // --- Left Quadrant (FDI 31 -> 38) ---
@@ -96,9 +118,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Left Central Incisor',
     thaiName: 'ฟันตัดกลางซ้าย',
     classification: 'incisor',
-    position: [0.19, 0.38, 1.55],
-    rotation: [0, -0.09, -0.02],
-    scale: [0.38, 0.72, 0.36],
+    position: [0.18, 0.30, 1.62],
+    rotation: [0, -0.10, 0],
+    scale: [1.0, 1.02, 1.0],
   },
   {
     id: 'tooth-32',
@@ -106,9 +128,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Left Lateral Incisor',
     thaiName: 'ฟันตัดข้างซ้าย',
     classification: 'incisor',
-    position: [0.54, 0.38, 1.45],
-    rotation: [0, -0.28, -0.01],
-    scale: [0.40, 0.72, 0.38],
+    position: [0.54, 0.30, 1.50],
+    rotation: [0, -0.30, 0],
+    scale: [0.96, 1.02, 0.96],
   },
   {
     id: 'tooth-33',
@@ -116,9 +138,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Left Canine',
     thaiName: 'ฟันเขี้ยวซ้าย',
     classification: 'canine',
-    position: [0.90, 0.38, 1.20],
-    rotation: [0, -0.56, 0],
-    scale: [0.46, 0.76, 0.48],
+    position: [0.90, 0.32, 1.25],
+    rotation: [0, -0.58, 0],
+    scale: [1.0, 1.08, 1.0],
   },
   {
     id: 'tooth-34',
@@ -126,9 +148,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Left 1st Premolar',
     thaiName: 'ฟันกรามน้อยซี่ที่ 1 ซ้าย',
     classification: 'premolar',
-    position: [1.22, 0.36, 0.82],
-    rotation: [0, -0.82, 0.01],
-    scale: [0.50, 0.68, 0.54],
+    position: [1.24, 0.28, 0.86],
+    rotation: [0, -0.82, 0],
+    scale: [0.96, 1.0, 0.96],
   },
   {
     id: 'tooth-35',
@@ -136,9 +158,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Left 2nd Premolar',
     thaiName: 'ฟันกรามน้อยซี่ที่ 2 ซ้าย',
     classification: 'premolar',
-    position: [1.48, 0.35, 0.34],
-    rotation: [0, -1.05, 0.02],
-    scale: [0.54, 0.68, 0.58],
+    position: [1.50, 0.27, 0.35],
+    rotation: [0, -1.04, 0],
+    scale: [1.0, 1.0, 1.0],
   },
   {
     id: 'tooth-36',
@@ -146,9 +168,9 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Left 1st Molar',
     thaiName: 'ฟันกรามแท้ซี่ที่ 1 ซ้าย',
     classification: 'molar',
-    position: [1.72, 0.34, -0.28],
-    rotation: [0, -1.25, 0.02],
-    scale: [0.78, 0.74, 0.80],
+    position: [1.75, 0.26, -0.28],
+    rotation: [0, -1.24, 0],
+    scale: [1.08, 0.98, 1.08],
   },
   {
     id: 'tooth-37',
@@ -156,65 +178,65 @@ export const FULL_DENTAL_ARCH_TEETH: ToothInfo[] = [
     name: 'Left 2nd Molar',
     thaiName: 'ฟันกรามแท้ซี่ที่ 2 ซ้าย',
     classification: 'molar',
-    position: [1.90, 0.32, -0.96],
-    rotation: [0, -1.38, 0.03],
-    scale: [0.72, 0.70, 0.74],
+    position: [1.92, 0.24, -0.95],
+    rotation: [0, -1.40, 0],
+    scale: [1.02, 0.95, 1.02],
   },
   {
     id: 'tooth-38',
     fdaNumber: 38,
     name: 'Left 3rd Molar',
-    thaiName: 'ฟันกรามแท้ซี่ที่ 3 ซ้าย (ฟันคุด)',
+    thaiName: 'ฟันกรามแท้ซี่ที่ 3 ซ้าย',
     classification: 'molar',
-    position: [2.02, 0.28, -1.6],
-    rotation: [0, -1.48, 0.04],
-    scale: [0.66, 0.64, 0.68],
+    position: [2.05, 0.22, -1.55],
+    rotation: [0, -1.52, 0],
+    scale: [0.95, 0.9, 0.95],
   },
 ];
 
-// Plaque spots distributed along the full arch (cervical gumline & interdental)
+// Plaque spots on the U-Arch along the cervical margin and occlusal tables
 export const INITIAL_ARCH_PLAQUE: PlaqueSpot[] = [
-  // Anterior Incisors & Canines (Buccal Gumline)
-  { id: 'p-1', toothId: 'tooth-41', position: [-0.19, -0.05, 1.76], normal: [0, 0.2, 1], surface: 'buccal', severity: 0.9, cleaned: false },
-  { id: 'p-2', toothId: 'tooth-31', position: [0.19, -0.05, 1.76], normal: [0, 0.2, 1], surface: 'buccal', severity: 0.9, cleaned: false },
-  { id: 'p-3', toothId: 'tooth-42', position: [-0.56, -0.05, 1.64], normal: [-0.25, 0.2, 0.9], surface: 'buccal', severity: 0.85, cleaned: false },
-  { id: 'p-4', toothId: 'tooth-32', position: [0.56, -0.05, 1.64], normal: [0.25, 0.2, 0.9], surface: 'buccal', severity: 0.85, cleaned: false },
-  { id: 'p-5', toothId: 'tooth-43', position: [-0.94, -0.04, 1.36], normal: [-0.5, 0.2, 0.8], surface: 'buccal', severity: 0.8, cleaned: false },
-  { id: 'p-6', toothId: 'tooth-33', position: [0.94, -0.04, 1.36], normal: [0.5, 0.2, 0.8], surface: 'buccal', severity: 0.8, cleaned: false },
+  // Anterior Labial Gumline
+  { id: 'p-1', toothId: 'tooth-41', position: [-0.18, 0.06, 1.84], normal: [0, 0.3, 1], surface: 'buccal', severity: 0.9, cleaned: false },
+  { id: 'p-2', toothId: 'tooth-31', position: [0.18, 0.06, 1.84], normal: [0, 0.3, 1], surface: 'buccal', severity: 0.9, cleaned: false },
+  { id: 'p-3', toothId: 'tooth-42', position: [-0.56, 0.06, 1.72], normal: [-0.3, 0.3, 0.9], surface: 'buccal', severity: 0.85, cleaned: false },
+  { id: 'p-4', toothId: 'tooth-32', position: [0.56, 0.06, 1.72], normal: [0.3, 0.3, 0.9], surface: 'buccal', severity: 0.85, cleaned: false },
+  { id: 'p-5', toothId: 'tooth-43', position: [-0.96, 0.07, 1.44], normal: [-0.6, 0.3, 0.8], surface: 'buccal', severity: 0.8, cleaned: false },
+  { id: 'p-6', toothId: 'tooth-33', position: [0.96, 0.07, 1.44], normal: [0.6, 0.3, 0.8], surface: 'buccal', severity: 0.8, cleaned: false },
 
-  // Right Premolars & Molars (Buccal Gumline)
-  { id: 'p-7', toothId: 'tooth-44', position: [-1.36, -0.03, 0.92], normal: [-0.7, 0.2, 0.6], surface: 'buccal', severity: 0.85, cleaned: false },
-  { id: 'p-8', toothId: 'tooth-45', position: [-1.64, -0.03, 0.40], normal: [-0.85, 0.2, 0.4], surface: 'buccal', severity: 0.85, cleaned: false },
-  { id: 'p-9', toothId: 'tooth-46', position: [-1.90, -0.03, -0.26], normal: [-0.95, 0.2, 0.2], surface: 'buccal', severity: 0.95, cleaned: false },
-  { id: 'p-10', toothId: 'tooth-47', position: [-2.05, -0.03, -0.95], normal: [-0.98, 0.2, 0.1], surface: 'buccal', severity: 0.9, cleaned: false },
+  // Right Premolar & Molar Gumline
+  { id: 'p-7', toothId: 'tooth-44', position: [-1.38, 0.07, 1.0], normal: [-0.8, 0.2, 0.6], surface: 'buccal', severity: 0.85, cleaned: false },
+  { id: 'p-8', toothId: 'tooth-45', position: [-1.68, 0.07, 0.44], normal: [-0.9, 0.2, 0.4], surface: 'buccal', severity: 0.85, cleaned: false },
+  { id: 'p-9', toothId: 'tooth-46', position: [-1.98, 0.06, -0.24], normal: [-0.98, 0.2, 0.2], surface: 'buccal', severity: 0.95, cleaned: false },
+  { id: 'p-10', toothId: 'tooth-47', position: [-2.14, 0.05, -0.92], normal: [-0.98, 0.2, 0.1], surface: 'buccal', severity: 0.9, cleaned: false },
 
-  // Left Premolars & Molars (Buccal Gumline)
-  { id: 'p-11', toothId: 'tooth-34', position: [1.36, -0.03, 0.92], normal: [0.7, 0.2, 0.6], surface: 'buccal', severity: 0.85, cleaned: false },
-  { id: 'p-12', toothId: 'tooth-35', position: [1.64, -0.03, 0.40], normal: [0.85, 0.2, 0.4], surface: 'buccal', severity: 0.85, cleaned: false },
-  { id: 'p-13', toothId: 'tooth-36', position: [1.90, -0.03, -0.26], normal: [0.95, 0.2, 0.2], surface: 'buccal', severity: 0.95, cleaned: false },
-  { id: 'p-14', toothId: 'tooth-37', position: [2.05, -0.03, -0.95], normal: [0.98, 0.2, 0.1], surface: 'buccal', severity: 0.9, cleaned: false },
+  // Left Premolar & Molar Gumline
+  { id: 'p-11', toothId: 'tooth-34', position: [1.38, 0.07, 1.0], normal: [0.8, 0.2, 0.6], surface: 'buccal', severity: 0.85, cleaned: false },
+  { id: 'p-12', toothId: 'tooth-35', position: [1.68, 0.07, 0.44], normal: [0.9, 0.2, 0.4], surface: 'buccal', severity: 0.85, cleaned: false },
+  { id: 'p-13', toothId: 'tooth-36', position: [1.98, 0.06, -0.24], normal: [0.98, 0.2, 0.2], surface: 'buccal', severity: 0.95, cleaned: false },
+  { id: 'p-14', toothId: 'tooth-37', position: [2.14, 0.05, -0.92], normal: [0.98, 0.2, 0.1], surface: 'buccal', severity: 0.9, cleaned: false },
 
-  // Interdental Proximal Spaces
-  { id: 'p-15', toothId: 'tooth-41', position: [0.0, 0.15, 1.55], normal: [0, 0, 1], surface: 'interdental', severity: 0.95, cleaned: false },
-  { id: 'p-16', toothId: 'tooth-43', position: [-1.06, 0.12, 1.02], normal: [-0.6, 0, 0.7], surface: 'interdental', severity: 0.9, cleaned: false },
-  { id: 'p-17', toothId: 'tooth-33', position: [1.06, 0.12, 1.02], normal: [0.6, 0, 0.7], surface: 'interdental', severity: 0.9, cleaned: false },
-  { id: 'p-18', toothId: 'tooth-46', position: [-1.60, 0.14, 0.05], normal: [-0.8, 0, 0.5], surface: 'interdental', severity: 0.95, cleaned: false },
-  { id: 'p-19', toothId: 'tooth-36', position: [1.60, 0.14, 0.05], normal: [0.8, 0, 0.5], surface: 'interdental', severity: 0.95, cleaned: false },
+  // Interdental Proximal Contact Areas
+  { id: 'p-15', toothId: 'tooth-41', position: [0.0, 0.24, 1.62], normal: [0, 0, 1], surface: 'interdental', severity: 0.95, cleaned: false },
+  { id: 'p-16', toothId: 'tooth-43', position: [-1.08, 0.22, 1.05], normal: [-0.7, 0, 0.7], surface: 'interdental', severity: 0.9, cleaned: false },
+  { id: 'p-17', toothId: 'tooth-33', position: [1.08, 0.22, 1.05], normal: [0.7, 0, 0.7], surface: 'interdental', severity: 0.9, cleaned: false },
+  { id: 'p-18', toothId: 'tooth-46', position: [-1.62, 0.22, 0.04], normal: [-0.9, 0, 0.4], surface: 'interdental', severity: 0.95, cleaned: false },
+  { id: 'p-19', toothId: 'tooth-36', position: [1.62, 0.22, 0.04], normal: [0.9, 0, 0.4], surface: 'interdental', severity: 0.95, cleaned: false },
 
   // Occlusal Chewing Grooves
-  { id: 'p-20', toothId: 'tooth-46', position: [-1.72, 0.72, -0.28], normal: [0, 1, 0], surface: 'occlusal', severity: 0.8, cleaned: false },
-  { id: 'p-21', toothId: 'tooth-36', position: [1.72, 0.72, -0.28], normal: [0, 1, 0], surface: 'occlusal', severity: 0.8, cleaned: false },
-  { id: 'p-22', toothId: 'tooth-47', position: [-1.90, 0.68, -0.96], normal: [0, 1, 0], surface: 'occlusal', severity: 0.75, cleaned: false },
-  { id: 'p-23', toothId: 'tooth-37', position: [1.90, 0.68, -0.96], normal: [0, 1, 0], surface: 'occlusal', severity: 0.75, cleaned: false },
+  { id: 'p-20', toothId: 'tooth-46', position: [-1.75, 0.58, -0.28], normal: [0, 1, 0], surface: 'occlusal', severity: 0.8, cleaned: false },
+  { id: 'p-21', toothId: 'tooth-36', position: [1.75, 0.58, -0.28], normal: [0, 1, 0], surface: 'occlusal', severity: 0.8, cleaned: false },
+  { id: 'p-22', toothId: 'tooth-47', position: [-1.92, 0.55, -0.95], normal: [0, 1, 0], surface: 'occlusal', severity: 0.75, cleaned: false },
+  { id: 'p-23', toothId: 'tooth-37', position: [1.92, 0.55, -0.95], normal: [0, 1, 0], surface: 'occlusal', severity: 0.75, cleaned: false },
 ];
 
-// Debris spots wedged in natural interproximal embrasures
+// Debris spots wedged in natural interdental embrasures
 export const INITIAL_ARCH_DEBRIS: DebrisSpot[] = [
-  { id: 'd-1', interdentalSpace: '41-31', position: [0.0, 0.22, 1.55], cleaned: false, size: 0.08 },
-  { id: 'd-2', interdentalSpace: '46-45', position: [-1.60, 0.20, 0.05], cleaned: false, size: 0.10 },
-  { id: 'd-3', interdentalSpace: '36-35', position: [1.60, 0.20, 0.05], cleaned: false, size: 0.10 },
-  { id: 'd-4', interdentalSpace: '47-46', position: [-1.82, 0.18, -0.62], cleaned: false, size: 0.09 },
-  { id: 'd-5', interdentalSpace: '37-36', position: [1.82, 0.18, -0.62], cleaned: false, size: 0.09 },
+  { id: 'd-1', interdentalSpace: '41-31', position: [0.0, 0.25, 1.62], cleaned: false, size: 0.075 },
+  { id: 'd-2', interdentalSpace: '46-45', position: [-1.62, 0.24, 0.04], cleaned: false, size: 0.085 },
+  { id: 'd-3', interdentalSpace: '36-35', position: [1.62, 0.24, 0.04], cleaned: false, size: 0.085 },
+  { id: 'd-4', interdentalSpace: '47-46', position: [-1.84, 0.22, -0.62], cleaned: false, size: 0.08 },
+  { id: 'd-5', interdentalSpace: '37-36', position: [1.84, 0.22, -0.62], cleaned: false, size: 0.08 },
 ];
 
 export const COMPACT_DENTAL_LESSONS: Record<string, DentalLesson> = {
