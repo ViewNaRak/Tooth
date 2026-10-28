@@ -1,32 +1,34 @@
-# 🦷 Tooth — 3D Interactive Full Dental Arch Simulator
+# 🦷 Tooth — 3D Interactive Dental Arch Simulator (Modified Bass Edition)
 
-> An accessible, friendly, and non-intimidating 3D dental simulator designed to teach proper brushing (Modified Bass 45°), flossing (C-Shape), and oral hygiene on an **Anatomical U-Arch Dental Model (16 smooth stylized teeth & tube-lofted gums)**.
+> An accessible, friendly, and non-intimidating 3D dental simulator designed to teach proper brushing (**Authentic Modified Bass Technique 45° with 2-Phase Jiggle & Sweep**), flossing (C-Shape), and oral hygiene on an **Anatomical U-Arch Dental Model (16 smooth stylized teeth & tube-lofted gums)** with a modern minimalist floating island dock.
 
 ---
 
 ## 🌟 Key Features & Improvements (ฟีเจอร์และการปรับปรุงล่าสุด)
 
-### 1. โมเดล 3D แผงฟันและเหงือกใหม่ทั้งหมด (Anatomical U-Arch)
-- **ฐานเหงือกรูปตัว U (Anatomical U-Arch Gum)**:
-  - ใช้ `CatmullRomCurve3` ดัดโค้งเป็นรูปเกือกม้าตัว U ตามแนวขากรรไกรล่างธรรมชาติ ร่วมกับ `TubeGeometry`
-  - ปราศจากฐานทรงกระบอกกลมแบนเดิม 100% เหงือกโอบรับโคนฟันทุกซี่อย่างแนบสนิท
-  - สีชมพูพีชพาสเทลละมุน (`#F4978E` / `#EE887F`) สัมผัสดินปั้นกึ่งเงา (`Roughness 0.4`)
-- **ฟันขอบมนสไตล์ Smooth Clay Art ([TeethModel.tsx](file:///d:/Github/Tooth/src/components/models/TeethModel.tsx))**:
-  - สร้างด้วย `@react-three/drei` `RoundedBox` ไร้เหลี่ยมคม ปราศจากรอยต่อหรือแผ่นหยักซ้อนกัน
-  - **ฟันหน้า (Incisors)**: ทรงแบนมน ปลายโค้งมน ขนาดพอดี
-  - **ฟันเขี้ยว (Canines)**: ทรงกรวยมน ปลายไม่แหลมจนน่ากลัว
-  - **ฟันกรามน้อยและกรามใหญ่ (Premolars & Molars)**: ด้านบดเคี้ยวโค้งมน มีร่องฟันนุ่มๆ 4 ปุ่ม (Pillowy Cusps)
-  - **สีฟัน**: ขาวนวลไข่มุกธรรมชาติ (`#FFFDF9`) เคลือบเงาสะอาดตา (`MeshPhysicalMaterial`, `Roughness 0.22`, `Clearcoat 0.35`)
+### 1. Modern Floating Island Bottom Dock UI ([BottomDock.tsx](file:///d:/Github/Tooth/src/components/ui/BottomDock.tsx))
+- **Floating Pill Design (`rounded-full`)**: ด็อกลอยสไตล์โมเดิร์นคลีน กระจกฝ้าโปร่งแสง (`backdrop-blur-xl bg-white/85 border border-stone-200/70 shadow-2xl`)
+- **จัดกลุ่มฟังก์ชันชัดเจนด้วยเส้นคั่น (Dividers)**:
+  - **[กลุ่มเครื่องมือ]**: แปรงฟัน (🪥) / ไหมขัดฟัน (🧵) / บ้วนปาก (💧) พร้อมไฮไลต์พาสเทลมินต์-พีชนุ่มตา
+  - **[ปุ่มเสียง]**: ไอคอนลำโพงเปิด/ปิดเสียง Compact Sound Toggle (`Volume2` / `VolumeX`) วางเคียงข้างแถบเครื่องมืออย่างกลมกลืน
+  - **[กลุ่มควบคุม]**:
+    - **ปุ่มเริ่มสาธิต (Play Demo)**: สไตล์แคปซูลสีครีม/เอิร์ธโทนสุดพรีเมียม ไม่ใช้สีเหลืองฉูดฉาด
+    - **ปุ่มสลับมุม 45°**: บ่งบอกสถานะมุมองศาแปรงอย่างชัดเจน
+  - **[ปุ่มรีเซ็ต]**: ไอคอนหมุนวนขนาดพอดีมือ
 
-### 2. ปรับปรุงฟิสิกส์การแปรงฟัน (Smooth Anti-Collision & Modified Bass)
-- **Automatic 45° Alignment**: ขนแปรงหันเข้าหาแนวร่องเหงือก (Sulcus) ทำมุม 45 องศาโดยอัตโนมัติเมื่อเลื่อนเข้าไปใกล้
-- **Anti-Collision Guard**: มีระยะ Offset คำนวณตามเวกเตอร์แนวตั้งฉาก (Normal Vector) ป้องกันไม่ให้หัวแปรงจมทะลุเข้าไปในเนื้อฟัน
-- **แอนิเมชัน Modified Bass**: สั่นวนเป็นวงสั้นๆ (Micro-vibration) ในร่องเหงือก 2-3 วินาที แล้วปัดขึ้นไปทางปลายฟัน (Coronal Sweep)
-- **ฟองโฟมและประกายละออง**: คราบพลัคจะค่อยๆ ละลายกลายเป็นฟองโฟมสีขาวนุ่มพวยพุ่งแตกตัวออก พร้อมเสียง Pop น่ารัก
-
-### 3. ปุ่มเปิด/ปิดเสียง (Sound Toggle) ใน Bottom Dock
-- เพิ่มปุ่มเปิด/ปิดเสียง (`Volume2` / `VolumeX`) ไว้ข้างๆ แถบสลับเครื่องมือในแถวเดียวกันอย่างกลมกลืน
-- ควบคุมเสียงสังเคราะห์ทั้งหมดจาก Web Audio API (เสียงขัดฟัน, เสียงคราบหลุด, เสียงกระดิ่งฉลอง)
+### 2. ฟิสิกส์และท่าทางการแปรงฟันตามหลักทันตแพทย์จริง (Modified Bass Technique)
+ปรับปรุงใน [ToolsModel.tsx](file:///d:/Github/Tooth/src/components/models/ToolsModel.tsx):
+- **การวางแนวด้ามแปรงตามแนวโค้งขากรรไกร (Tangent Alignment)**:
+  - ยกเลิกการวางแปรงแนวตั้ง 100%
+  - ด้ามแปรงวาง **"แนวนอนขนานไปตามแนวโค้งของขากรรไกร (Tangent to Dental Arch)"** ครอบคลุมฟันครั้งละประมาณ 2-3 ซี่
+- **มุมขนแปรง 45 องศา (45° Sulcular Angle)**:
+  - ขนแปรงเอียงทำมุม 45° ชี้ลงเข้าหาร่องเหงือก (Gingival Sulcus) อย่างนุ่มนวล
+- **วงจรอนิเมชัน 2 จังหวะ (Jiggle & Sweep)**:
+  - **จังหวะที่ 1 (Vibrate/Jiggle, 0-2.2s)**: ขนแปรงสั่นไป-มาสั้นๆ ในร่องเหงือก (1-2 มม. ด้วยความถี่ ~19 Hz) 10 ครั้ง เพื่อรบกวนแผ่นคราบชีวภาพ (Microbial Biofilm)
+  - **จังหวะที่ 2 (Sweep/Roll, 2.2-3.0s)**: บิดข้อมือสะบัดขนแปรงปัดขึ้นทางด้านบดเคี้ยว (Coronal Roll) เพื่อกวาดคราบทิ้ง
+  - **การขยับย้ายจุด (Glide, 3.0-3.2s)**: ค่อยๆ ขยับย้ายไปแปรงฟันส่วนถัดไปรอบแผงฟัน
+- **Anti-Collision Guard**: มีระยะ Offset คำนวณตามเวกเตอร์แนวตั้งฉาก ป้องกันหัวแปรงไม่ให้จมทะลุเข้าไปในเนื้อฟัน
+- **Visual & Audio FX**: เกิดฟองโฟมสีขาวนุ่มแตกตัวรอบขนแปรง และคราบพลัคจะค่อยๆ สลายหายไปพร้อมเสียง Pop น่ารัก
 
 ---
 
@@ -43,11 +45,11 @@ Tooth/
 │   │   │   ├── GumsModel.tsx         # Anatomical U-Arch Tube Gingiva (No Flat Disc)
 │   │   │   ├── PlaqueModel.tsx       # Biofilm Clusters with Disclosing Dye Support
 │   │   │   ├── DebrisModel.tsx       # Interdental Food Particles
-│   │   │   ├── ToolsModel.tsx        # Anti-Collision Physics & 45° Sulcular Alignment
+│   │   │   ├── ToolsModel.tsx        # Horizontal Tangent Alignment & 2-Phase Modified Bass
 │   │   │   └── ParticlesModel.tsx    # Sparkle & Foam Bubble Burst System
 │   │   └── ui/
 │   │       ├── TopBar.tsx            # Camera Presets & Cleanliness Meter
-│   │       ├── BottomDock.tsx        # Tool Selector + Sound Toggle in Same Row
+│   │       ├── BottomDock.tsx        # Modern Floating Island Dock (Dividers, Earth-tone Capsule)
 │   │       └── GuidePopover.tsx      # Large Typography Step-by-Step Popover Card
 │   ├── utils/
 │   │   └── soundEffects.ts           # Procedural Web Audio API Sound Synthesizer
